@@ -432,6 +432,7 @@ $("addr").addEventListener("paste", e => {
 $("f").addEventListener("submit", e => {
   e.preventDefault();
   const a = $("addr").value.trim();
+  if (/^0x[0-9a-fA-F]{40}$/.test(a)) { $("log").textContent = "Det er en 0x-adresse (Ethereum, Base, BSC o.l.), ikke Solana. Tjekket virker kun på Solana-coins."; return; }
   if (!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(a)) { $("log").textContent = "Det ligner ikke en Solana-adresse (32–44 tegn, base58)."; return; }
   run(a);
 });
