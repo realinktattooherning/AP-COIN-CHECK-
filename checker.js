@@ -234,8 +234,15 @@ const IPFS_GATEWAYS = ["https://gateway.pinata.cloud/ipfs/", "https://ipfs.fileb
 
 // the coin's own metadata JSON (pump.fun-style: description, twitter, website, telegram); ipfs.io refuses scripts,
 // so IPFS links go through other public gateways that allow browsers
+// metadata hosts the extension may read (manifest host_permissions); unknown hosts are skipped in the extension so
+// Chrome does not log a CORS error, and the description still comes from Rugcheck
+const META_HOSTS = ["metadata.j7tracker.io", "gateway.irys.xyz", "meta.uxento.io", "www.agencypad.fun", "launch.mosaicfi.xyz", "arweave.net"];
+
 async function tokenMetadata(uri) {
   const m = String(uri || "").match(/\/ipfs\/([A-Za-z0-9]+)/);
+  let host = "";
+  try { host = new URL(uri).hostname; } catch {}
+  if (!m && typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.id && !META_HOSTS.includes(host)) return null;
   for (const url of m ? IPFS_GATEWAYS.map(g => g + m[1]) : uri ? [uri] : []) {
     try { const d = await req(url, null, 1); if (d && typeof d === "object") return d; } catch {}
   }
