@@ -72,7 +72,7 @@ textarea { width: 100%; min-height: 160px; font: 12px var(--mono); background: v
     <button id="go" type="submit">Tjek coin</button>
     <details>
       <summary>Solana RPC (til V5 fees)</summary>
-      <p>Tom = offentlig RPC (blokerer ofte). Indsæt din egen Helius-URL, så gemmes den kun i denne browser.</p>
+      <p>Valgfrit. Tom = gratis offentlig RPC uden nøgle. En egen Helius-URL bruges først og gemmes kun i denne browser.</p>
       <input id="rpc" placeholder="https://mainnet.helius-rpc.com/?api-key=…" autocomplete="off" spellcheck="false" aria-label="RPC-URL">
     </details>
   </form>
@@ -94,6 +94,7 @@ const JITO = new Set([
   "DttWaMuVvTiduZRnguLF7jNxTgiMBZ1hyAumKUiL2KRL", "3AVi9Tg9Uo68tJfuvoKvqKNWKkC5wPdSSdeBnizKZ6jT",
 ]);
 const FEE_SAMPLE = 30;
+const PUBLIC_RPCS = ["https://solana-rpc.publicnode.com", "https://api.mainnet-beta.solana.com"];
 const MANUAL = [
   "V7/V13 hype + sentiment fra holders på X (link ovenfor)",
   "V11 forstår du memet",
@@ -313,15 +314,19 @@ async function tradeChecks(best, rc, add) {
   return tr;
 }
 
-async function feeCheck(tr, best, rpc, add) {
+async function feeCheck(tr, best, rpcs, add) {
   if (!tr.length) { add("V5 total fees ≥ 2 SOL", NA, "ingen handler"); return; }
   const fees = [];
   let lastErr = "", done = 0;
   const one = async t => {
     const body = { jsonrpc: "2.0", id: 1, method: "getTransaction",
-      params: [t.tx_hash, { encoding: "jsonParsed", maxSupportedTransactionVersion: 0 }] };
+      params: [t.tx_hash, { encoding: "jsonParsed", maxSupportedTransactionVersion: 1 }] };
     let res = null;
-    try { res = (await req(rpc, body)).result; } catch (e) { lastErr = e.message; }
+    // own key first, then keyless public RPCs; one dead endpoint must not leave V5 unscanned
+    for (const u of rpcs) {
+      try { res = (await req(u, body, 2)).result; } catch (e) { lastErr = e.message; }
+      if (res) break;
+    }
     if (res) {
       const meta = res.meta, msg = res.transaction.message;
       const ins = [...(msg.instructions || []), ...(meta.innerInstructions || []).flatMap(g => g.instructions)];
@@ -336,7 +341,7 @@ async function feeCheck(tr, best, rpc, add) {
   for (let i = 0; i < sample.length; i += 5) await Promise.all(sample.slice(i, i + 5).map(one));
   if (!fees.length) {
     add("V5 total fees ≥ 2 SOL", NA, "Solana RPC svarede ikke" + (lastErr ? ` (${lastErr})` : ""),
-      "offentlig RPC blokerer ofte — indsæt en Helius-URL under 'Solana RPC' (401 = forkert nøgle)");
+      "alle RPC'er afviste — prøv igen om et minut");
     return;
   }
   const t24 = (best.txns || {}).h24 || {};
@@ -385,8 +390,7 @@ async function run(addr) {
   $("go").disabled = true; $("log").textContent = ""; $("out").hidden = true;
   const rpcIn = $("rpc").value.trim();
   store.set("rpc", rpcIn);
-  let rpc = rpcIn || "https://api.mainnet-beta.solana.com";
-  if (!rpc.includes("://")) rpc = "https://" + rpc;
+  const rpc = [rpcIn && (rpcIn.includes("://") ? rpcIn : "https://" + rpcIn), ...PUBLIC_RPCS].filter(Boolean);
   const rows = [];
   const add = (rule, s, v, n = "") => rows.push({ rule, s, v, n });
   try {

@@ -13,7 +13,7 @@ Indsæt i en ny chat:
 ```
 Tjek denne coin: <ADRESSE>
 
-1. Åbn https://realinktattooherning.github.io/AP-COIN-CHECK-/?a=<ADRESSE> og vent til loggen nederst siger "Færdig." (ca. 5 sek).
+1. Åbn https://realinktattooherning.github.io/AP-COIN-CHECK-/?a=<ADRESSE> og vent til loggen nederst siger "Færdig." (ca. 5-15 sek).
 2. Står der UFULDSTÆNDIG, start svaret med det og sig præcis hvad der mangler. Et ⬜ er aldrig et "ok".
    Er V17 ⬜: åbn pump.fun-linket på siden og se om der er X/Telegram/website/beskrivelse.
 3. Hvert 🟥 på V4, V5, V14, V15, V16 eller V17 er et hårdt nej.
