@@ -1,6 +1,6 @@
 # AP Coin Check
 
-Rug-pull-tjek for Solana memecoins. Kører direkte i browseren, kun læsning.
+Rug-pull-tjek for memecoins på Solana, Ethereum, Base, BSC m.fl. Kører direkte i browseren, kun læsning.
 
 **Side:** https://realinktattooherning.github.io/AP-COIN-CHECK-/
 
@@ -13,7 +13,7 @@ Rug-pull-tjek for Solana memecoins. Kører direkte i browseren, kun læsning.
 3. Klik **Indlæs upakket** og vælg den udpakkede mappe (den hvor `manifest.json` ligger).
 4. Klik puslespils-ikonet i Chrome og fastgør **AP Coin Check**.
 
-Er du på en coin på DexScreener eller pump.fun, så klik ikonet: den finder selv adressen og tjekker den.
+Udvidelsen åbner altid tom. Er du på en coin-side (DexScreener, pump.fun, GMGN, Axiom …), får du en knap "Tjek X fra fanen".
 Ny version: download ZIP igen, erstat mappen, og klik ↻ på udvidelsen under `chrome://extensions`.
 
 ## Til Claude in Chrome

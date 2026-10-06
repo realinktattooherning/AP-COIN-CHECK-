@@ -1,6 +1,25 @@
-const RED = "RED", YEL = "YEL", GRN = "GRN", NA = "NA";
-const ICON = { RED: "🟥", YEL: "🟨", GRN: "🟩", NA: "⬜" };
-const GT = "https://api.geckoterminal.com/api/v2/networks/solana/pools/";
+const RED = "RED", YEL = "YEL", GRN = "GRN", NA = "NA", SKIP = "SKIP";
+// SKIP = rule does not apply to this coin (e.g. launch data too old); never counted as ok or as missing
+const ICON = { RED: "🟥", YEL: "🟨", GRN: "🟩", NA: "⬜", SKIP: "➖" };
+const gtPools = net => `https://api.geckoterminal.com/api/v2/networks/${net}/pools/`;
+const GT = gtPools("solana");
+// DexScreener chainId → GeckoTerminal network + GoPlus / honeypot.is chain id
+const EVM = {
+  ethereum: { gt: "eth", id: 1, name: "Ethereum" }, base: { gt: "base", id: 8453, name: "Base" }, bsc: { gt: "bsc", id: 56, name: "BSC" },
+  arbitrum: { gt: "arbitrum", id: 42161, name: "Arbitrum" }, polygon: { gt: "polygon_pos", id: 137, name: "Polygon" },
+  avalanche: { gt: "avax", id: 43114, name: "Avalanche" }, optimism: { gt: "optimism", id: 10, name: "Optimism" },
+  linea: { gt: "linea", id: 59144, name: "Linea" }, sonic: { gt: "sonic", id: 146, name: "Sonic" },
+  unichain: { gt: "unichain", id: 130, name: "Unichain" }, abstract: { gt: "abstract", id: 2741, name: "Abstract" },
+  blast: { gt: "blast", id: 81457, name: "Blast" },
+};
+const HONEYPOT_IS = [1, 56, 8453];
+const EVM_ADDR = /^0x[0-9a-fA-F]{40}$/;
+const DEAD = /^0x(0{40}|0{36}dead)$/i;
+const CTRL_LABEL = {
+  owner_change_balance: "ejer kan ændre saldi", hidden_owner: "skjult ejer", transfer_pausable: "handel kan pauses",
+  can_take_back_ownership: "ejerskab kan tages tilbage", is_blacklisted: "blacklist", slippage_modifiable: "skat kan ændres",
+  personal_slippage_modifiable: "skat pr. wallet", trading_cooldown: "handels-cooldown", anti_whale_modifiable: "anti-whale kan ændres",
+};
 const JITO = new Set([
   "96gYZGLnJYVFmbjzopPSU6QiEV5fGqZNyN9nmNhvrZU5", "HFqU5x63VTqvQss8hp11i4wVV8bD44PvwucfZ2bU7gRe",
   "Cw8CFyM9FkoMi7K7Crf6HNQqf4uEMzpKw6QNghXLvLkY", "ADaUMid9yfUytqMBgopwjb2DTLSokTSzL1zt6iGPaS49",
@@ -14,7 +33,7 @@ const MANUAL = [
   "V11 forstår du memet",
   "V12 dev/team kan findes",
 ];
-const HARD_NO = ["V4", "V5", "V14", "V15", "V16", "V17", "Mint", "Freeze", "Rugcheck: rugged"];
+const HARD_NO = ["V4", "V5", "V14", "V15", "V16", "V17", "Mint", "Freeze", "Rugcheck: rugged", "Honeypot", "Salgs-skat"];
 
 const $ = id => document.getElementById(id);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -57,10 +76,11 @@ function fmt(n) {
 }
 const f1 = x => Number(x).toFixed(1);
 
-function bestPair(dex) {
+function bestPair(dex, addr) {
   const all = (dex && dex.pairs) || [];
-  const sol = all.filter(p => p.chainId === "solana");
-  const pairs = sol.length ? sol : all;
+  // the tokens endpoint also lists pairs where the coin is the quote side
+  const own = all.filter(p => ((p.baseToken || {}).address || "").toLowerCase() === addr.toLowerCase());
+  const pairs = own.length ? own : all;
   return pairs.reduce((b, p) => (((p.liquidity || {}).usd || 0) > ((b.liquidity || {}).usd || -1) ? p : b), {});
 }
 
@@ -81,7 +101,7 @@ function largestEqualCluster(pcts) {
   return best;
 }
 
-function baseChecks(rc, pair, add) {
+function baseChecks(rc, pair, add, chain = "solana") {
   const mc = pair.marketCap || pair.fdv;
   const vol = pair.volume || {}, txns = pair.txns || {};
   if (rc) {
@@ -109,12 +129,12 @@ function baseChecks(rc, pair, add) {
     const warn = (rc.risks || []).filter(r => r.level === "warn").map(r => r.name);
     add("Rugcheck risici", danger.length ? RED : warn.length ? YEL : GRN, [...danger, ...warn].join(", ") || "ingen",
       "score " + (rc.score_normalised ?? rc.score));
-  } else {
+  } else if (chain === "solana") {
     add("Rugcheck-data", NA, "mangler", "V2, V8, V14, authorities, LP kunne ikke tjekkes");
   }
   if (pair.pairAddress) {
     const dexId = pair.dexId || "?";
-    add("V4 graduated", dexId !== "pumpfun" ? GRN : RED, dexId, "pumpfun = stadig på bonding curve");
+    if (chain === "solana") add("V4 graduated", dexId !== "pumpfun" ? GRN : RED, dexId, "pumpfun = stadig på bonding curve");
     add("V4 market cap ≥ $50-60K", mc == null ? NA : mc < 50000 ? RED : GRN, fmt(mc), "sweet spot $50K-200K");
     add("V15 market cap ≤ 24h-volumen", mc == null ? NA : mc > (vol.h24 || 0) ? RED : GRN, `MC ${fmt(mc)} / vol ${fmt(vol.h24)}`);
     const h1 = txns.h1 || {}, h24 = txns.h24 || {};
@@ -126,7 +146,8 @@ function baseChecks(rc, pair, add) {
     const age = pair.pairCreatedAt ? (Date.now() - pair.pairCreatedAt) / 3600000 : null;
     add("V10 alder ≤ 1 døgn", age == null ? NA : age > 24 ? YEL : GRN, age == null ? "?" : f1(age) + " t");
     const liq = (pair.liquidity || {}).usd, ratio = liq && mc ? liq / mc * 100 : null;
-    add("Likviditet ift. MC", ratio == null ? NA : ratio < 5 ? RED : ratio < 10 ? YEL : GRN,
+    if (ratio == null && dexId === "pumpfun") add("Likviditet ift. MC", SKIP, "bonding curve, ingen pool endnu", "V4 graduated dækker det");
+    else add("Likviditet ift. MC", ratio == null ? NA : ratio < 5 ? RED : ratio < 10 ? YEL : GRN,
       ratio == null ? fmt(liq) : `${fmt(liq)} (${f1(ratio)} % af MC)`);
     const pc = pair.priceChange || {};
     add("V9 momentum (info)", NA, `pris 5m ${pc.m5 ?? "?"}% · 1h ${pc.h1 ?? "?"}% · 24h ${pc.h24 ?? "?"}% · vol 5m ${fmt(vol.m5)}`);
@@ -154,7 +175,7 @@ async function launchPool(mint, dex, best) {
   // The pump.fun bonding-curve pool holds the real launch candles; DexScreener drops it after migration, GeckoTerminal keeps it
   try {
     const d = await req(`https://api.geckoterminal.com/api/v2/networks/solana/tokens/${mint}/pools?page=1`);
-    const pools = d.data || [];
+    const pools = ownPools(d, mint);
     const pf = pools.find(p => p.relationships.dex.data.id === "pump-fun");
     const ids = pools.map(p => p.attributes.address);
     if (pf) return { pool: { pairAddress: pf.attributes.address, dexId: "pumpfun", pairCreatedAt: Date.parse(pf.attributes.pool_created_at) }, ids };
@@ -166,8 +187,8 @@ async function launchPool(mint, dex, best) {
 
 const median = a => { if (!a.length) return 0; const s = [...a].sort((x, y) => x - y), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
 
-async function candleChecks(pool, add) {
-  let url = `${GT}${pool.pairAddress}/ohlcv/minute?aggregate=1&limit=1000`;
+async function candleChecks(pool, add, net = "solana") {
+  let url = `${gtPools(net)}${pool.pairAddress}/ohlcv/minute?aggregate=1&limit=1000`;
   const created = pool.pairCreatedAt;
   if (created) url += `&before_timestamp=${Math.floor(created / 1000) + 1000 * 60}`;
   let c;
@@ -175,6 +196,12 @@ async function candleChecks(pool, add) {
     c = (await req(url)).data.attributes.ohlcv_list.sort((a, b) => a[0] - b[0]);
     if (created) c = c.filter(x => x[0] >= created / 1000 - 60);
   } catch (e) {
+    // GeckoTerminal's free API has no minute candles older than ~6 months (401); launch-bundle rules are for new coins anyway
+    if (/401/.test(e.message) && created && Date.now() - created > 150 * 864e5) {
+      add("V1 første candle (bundle ved launch)", SKIP, "launch for gammel til gratis candle-data", "reglen gælder nye coins");
+      add("V6 én wick til himlen", SKIP, "launch for gammel til gratis candle-data", "reglen gælder nye coins");
+      return;
+    }
     add("V1 første candle (bundle ved launch)", NA, "fejl: " + String(e.message).slice(0, 40));
     add("V6 én wick til himlen", NA, "ingen candles");
     return;
@@ -183,7 +210,7 @@ async function candleChecks(pool, add) {
   const vols = c.map(x => x[5]);
   const share = c[0][5] / (vols.reduce((s, v) => s + v, 0) || 1);
   const vsMed = c.length > 5 ? c[0][5] / (median(vols.slice(1, 31)) || 1) : null;
-  if (pool.dexId !== "pumpfun") {
+  if (pool.dexId !== "pumpfun" && !pool.launch) {
     add("V1 første candle (bundle ved launch)", NA, "launch-pool (pump.fun) ikke fundet",
       `kun ${pool.dexId}-pool — ikke en pump.fun-coin, eller API fejlede`);
   } else {
@@ -201,9 +228,9 @@ async function candleChecks(pool, add) {
     `største wick ${f1(wick)}× over candle-krop, ${above.toFixed(2)}× over chartets top-niveau`);
 }
 
-async function tradeChecks(best, rc, add) {
+async function tradeChecks(best, holders, add, net = "solana") {
   let tr;
-  try { tr = (await req(`${GT}${best.pairAddress}/trades`)).data.map(t => t.attributes); }
+  try { tr = (await req(`${gtPools(net)}${best.pairAddress}/trades`)).data.map(t => t.attributes); }
   catch (e) { add("V3 sell-bots der spejler køb", NA, "fejl: " + String(e.message).slice(0, 40)); return []; }
   tr.sort((a, b) => (a.block_timestamp < b.block_timestamp ? -1 : 1));
   const used = new Set(), sellers = new Set();
@@ -220,8 +247,7 @@ async function tradeChecks(best, rc, add) {
     }
   }
   const ratio = buys.length ? mirrors / buys.length : 0;
-  const owners = new Set(((rc || {}).topHolders || []).map(h => h.owner));
-  const big = [...sellers].filter(s => owners.has(s)).length;
+  const big = [...sellers].filter(s => holders.has(String(s).toLowerCase())).length;
   add("V3 sell-bots der spejler køb", mirrors >= 5 && ratio >= 0.1 ? RED : mirrors >= 3 ? YEL : GRN,
     `${mirrors} spejlede salg på ${buys.length} køb (${(ratio * 100).toFixed(0)} %), ${sellers.size} sælger-wallets, ${big} af dem top-holders`,
     `seneste ${tr.length} handler`);
@@ -268,7 +294,7 @@ async function feeCheck(tr, best, rpcs, add) {
     `estimat: gas + Jito-tips fra ${fees.length} stikprøver; minimumsværdi`);
 }
 
-async function athRow(pair, poolIds, L) {
+async function athRow(pair, poolIds, L, net = "solana") {
   const pf = L.pump;
   if (pf && pf.ath_market_cap && pf.usd_market_cap) return { ath: pf.ath_market_cap, now: pf.usd_market_cap };
   // fallback: highest daily USD price across the token's pools × current supply factor
@@ -276,9 +302,82 @@ async function athRow(pair, poolIds, L) {
   if (!mc || !price) return null;
   let hi = 0;
   for (const id of poolIds.slice(0, 2)) {
-    try { hi = Math.max(hi, ...(await req(`${GT}${id}/ohlcv/day?limit=1000`)).data.attributes.ohlcv_list.map(x => x[2])); } catch {}
+    try {
+      // a thin pool's init candle can print an absurd price; drop highs over 50× the pool's median close
+      const d = (await req(`${gtPools(net)}${id}/ohlcv/day?limit=1000`)).data.attributes.ohlcv_list;
+      const med = median(d.map(x => x[4]));
+      hi = Math.max(hi, ...d.map(x => x[2]).filter(h => !med || h <= 50 * med));
+    } catch {}
   }
   return hi ? { ath: Math.max(hi * mc / price, mc), now: mc } : null;
+}
+
+// GeckoTerminal prices a pool's candles in its base token; a pool where our coin is the quote side shows the other coin's price
+const ownPools = (d, addr) => (d.data || []).filter(p => p.relationships.base_token.data.id.toLowerCase().endsWith("_" + addr.toLowerCase()));
+
+async function evmLaunch(addr, net) {
+  // earliest pool = launch; its first minutes show a launch bundle the same way pump.fun candles do
+  try {
+    const pools = ownPools(await req(`https://api.geckoterminal.com/api/v2/networks/${net}/tokens/${addr}/pools?page=1`), addr)
+      .map(p => ({ pairAddress: p.attributes.address, dexId: p.relationships.dex.data.id, pairCreatedAt: Date.parse(p.attributes.pool_created_at), launch: true }));
+    if (!pools.length) return { pool: null, ids: [] };
+    const first = pools.reduce((a, b) => (b.pairCreatedAt < a.pairCreatedAt ? b : a));
+    return { pool: first, ids: pools.map(p => p.pairAddress) };
+  } catch { return { pool: null, ids: [] }; }
+}
+
+async function evmChecks(addr, c, add) {
+  // honeypot.is simulates a real buy + sell; GoPlus reads the contract's owner powers and holders
+  const [gpR, hp] = await Promise.all([
+    req(`https://api.gopluslabs.io/api/v1/token_security/${c.id}?contract_addresses=${addr}`, null, 2).catch(() => null),
+    HONEYPOT_IS.includes(c.id) ? req(`https://api.honeypot.is/v2/IsHoneypot?address=${addr}&chainID=${c.id}`, null, 2).catch(() => null) : null,
+  ]);
+  const gp = gpR && gpR.result ? (gpR.result[addr.toLowerCase()] || Object.values(gpR.result)[0] || null) : null;
+  const on = k => !!gp && String(gp[k]) === "1";
+  const sim = !!(hp && hp.simulationSuccess);
+  const honey = (sim && hp.honeypotResult && hp.honeypotResult.isHoneypot) || on("is_honeypot") || on("cannot_sell_all");
+  if (!sim && !gp) add("Honeypot: kan du sælge?", NA, "ingen svar fra honeypot.is/GoPlus", "prøv igen om et minut");
+  else add("Honeypot: kan du sælge?", honey ? RED : GRN, honey ? "NEJ — honeypot" : "ja", sim ? "simuleret køb + salg (honeypot.is)" : "GoPlus kontrakt-analyse");
+  const pct = v => (v === "" || v == null ? null : Number(v) * 100);
+  const bt = sim ? hp.simulationResult.buyTax : pct(gp && gp.buy_tax);
+  const st = sim ? hp.simulationResult.sellTax : pct(gp && gp.sell_tax);
+  add("Salgs-skat ≤ 10 %", st == null ? NA : st > 10 ? RED : st > 5 || (bt || 0) > 10 ? YEL : GRN,
+    st == null ? "ukendt" : `køb ${f1(bt || 0)} % · salg ${f1(st)} %`, "over 10 % i salgs-skat = du mister for meget ved salg");
+  const siph = sim && hp.holderAnalysis ? Number(hp.holderAnalysis.siphoned || 0) : 0;
+  if (siph) add("Tokens trukket fra holders", RED, `${siph} wallets tømt`, "honeypot.is: dev kan tage tokens fra holders");
+  if (!gp) {
+    add("GoPlus-data", NA, "mangler", "mint, pause/blacklist, holders og LP kunne ikke tjekkes");
+    return new Set();
+  }
+  add("Mint-funktion slået fra", on("is_mintable") ? RED : GRN, on("is_mintable") ? "dev kan printe flere" : "ja");
+  const hard = ["owner_change_balance", "hidden_owner", "transfer_pausable", "can_take_back_ownership"].filter(on);
+  const soft = ["is_blacklisted", "slippage_modifiable", "personal_slippage_modifiable", "trading_cooldown", "anti_whale_modifiable"].filter(on);
+  add("Freeze: pause/blacklist/ejer-magt", hard.length ? RED : soft.length ? YEL : GRN, [...hard, ...soft].map(k => CTRL_LABEL[k]).join(", ") || "ingen",
+    "rødt = dev kan fryse eller tage dine tokens");
+  const open = String(gp.is_open_source) === "1";
+  add("Kontrakt verificeret", !open ? RED : on("is_proxy") ? YEL : GRN, !open ? "kildekode skjult" : on("is_proxy") ? "proxy (kan udskiftes)" : "open source");
+  if (on("honeypot_with_same_creator")) add("Dev har lavet honeypots før", RED, "ja", "GoPlus");
+  const hs = (gp.holders || []).filter(h => !Number(h.is_contract) && !Number(h.is_locked) && !DEAD.test(h.address));
+  const top10 = hs.slice(0, 10).reduce((s, h) => s + Number(h.percent) * 100, 0);
+  add("V14 top 10 holders ≤ 30 %", top10 > 30 ? RED : GRN, f1(top10) + " %", "ekskl. pools, lockers og kontrakter (GoPlus)");
+  const cl = largestEqualCluster(hs.map(h => Number(h.percent) * 100).filter(p => p >= 0.3));
+  add("V2 ens holder-balancer (bundle)", cl.length >= 4 ? RED : cl.length === 3 ? YEL : GRN,
+    cl.length ? `${cl.length} wallets ~${cl[0].toFixed(2)} %` : "ingen", "≥4 inden for ~2 % af hinanden = rødt");
+  const lp = gp.lp_holders || [];
+  const locked = lp.filter(h => Number(h.is_locked) || DEAD.test(h.address)).reduce((s, h) => s + Number(h.percent) * 100, 0);
+  add("LP låst/brændt", !lp.length ? YEL : locked >= 90 ? GRN : locked >= 50 ? YEL : RED, lp.length ? f1(locked) + " %" : "ingen LP-data",
+    lp.length ? "" : "Uniswap V3/V4-pools har ingen LP-tokens; se locker på DexScreener");
+  const dev = Math.max(Number(gp.creator_percent) || 0, Number(gp.owner_percent) || 0) * 100;
+  add("Dev/creator andel", dev > 5 ? RED : dev > 1 ? YEL : GRN, f1(dev) + " %");
+  return new Set((gp.holders || []).map(h => h.address.toLowerCase()));
+}
+
+function athFrom(a, rows) {
+  if (!a) return;
+  const dd = 1 - a.now / a.ath;
+  const i9 = rows.findIndex(r => r.rule.startsWith("V9 momentum"));
+  rows.splice(i9 + 1, 0, { rule: "V9 fald fra top (info)", s: dd > 0.75 ? YEL : GRN,
+    v: `${(dd * 100).toFixed(0)} % under ATH (${fmt(a.ath)})`, n: "Sal: ægte projekter trækker typisk ~50 % tilbage" });
 }
 
 // one number for the user: 1-3 don't buy, 4-6 wait, 7-10 buy candidate
@@ -314,49 +413,72 @@ async function run(addr) {
   const rows = [];
   const add = (rule, s, v, n = "") => rows.push({ rule, s, v, n });
   try {
-    log("Henter DexScreener + Rugcheck …");
+    const evmAddr = EVM_ADDR.test(addr);
+    log("Henter data …");
     const [dex, rc] = await Promise.all([
       req(`https://api.dexscreener.com/latest/dex/tokens/${addr}`).catch(e => (log("FEJL dexscreener: " + e.message), null)),
-      req(`https://api.rugcheck.xyz/v1/tokens/${addr}/report`).catch(e => (log("FEJL rugcheck: " + e.message), null)),
+      evmAddr ? null : req(`https://api.rugcheck.xyz/v1/tokens/${addr}/report`).catch(() => null),
     ]);
-    const pair = bestPair(dex);
+    const pair = bestPair(dex, addr);
+    const chain = pair.chainId || (evmAddr ? "evm" : "solana");
     const name = (pair.baseToken || {}).symbol || ((rc || {}).tokenMeta || {}).symbol || addr;
-    baseChecks(rc, pair, add);
     let L = { twitter: null };
-    const pending = new Set(pair.pairAddress ? ["V1/V6 launch-candles", "V3 handler", "V5 fees", "V17 socials", "V9 ATH"] : []);
-    const show = () => render(addr, name, pair, L, rows, [...pending]);
-    show();
-    if (pair.pairAddress) {
-      const lpP = launchPool(addr, dex, pair);
+    let pending = new Set();
+    const show = () => render(addr, name, pair, L, rows, [...pending], chain);
+    const setV17 = () => {
+      const found = ["twitter", "website", "telegram"].filter(k => L[k]);
+      const i17 = rows.findIndex(r => r.rule.startsWith("V17"));
+      if (i17 < 0) return;
+      if (found.length) {
+        rows[i17] = { rule: rows[i17].rule, s: !L.twitterIsPost || found.length > 1 ? GRN : YEL, v: found.join(", "),
+          n: L.twitterIsPost ? "X-linket er et enkelt opslag, ikke en projektkonto" : "DexScreener" + (L.pump ? " + pump.fun" : "") };
+      } else if (chain !== "solana") {
+        rows[i17] = { rule: rows[i17].rule, s: NA, v: "ingen DexScreener-profil", n: "se coinens side/X selv for beskrivelse og socials" };
+      } else if (L.pumpError) {
+        rows[i17] = { rule: rows[i17].rule, s: NA, v: "ingen på DexScreener, pump.fun svarede ikke",
+          n: `åbn pump.fun/coin/${addr} og se om der er X/Telegram/website/beskrivelse` };
+      } else {
+        rows[i17] = { rule: rows[i17].rule, s: RED, v: "ingen socials/website", n: "DexScreener + pump.fun" };
+      }
+    };
+
+    if (chain === "solana") {
+      baseChecks(rc, pair, add);
+      pending = new Set(pair.pairAddress ? ["V1/V6 launch-candles", "V3 handler", "V5 fees", "V17 socials", "V9 ATH"] : []);
+      show();
+      if (pair.pairAddress) {
+        const owners = new Set(((rc || {}).topHolders || []).map(h => String(h.owner).toLowerCase()));
+        const lpP = launchPool(addr, dex, pair);
+        await Promise.all([
+          lpP.then(lp => candleChecks(lp.pool, add)).then(() => { pending.delete("V1/V6 launch-candles"); show(); }),
+          tradeChecks(pair, owners, add).then(tr => { pending.delete("V3 handler"); show(); return feeCheck(tr, pair, rpc, add); })
+            .then(() => { pending.delete("V5 fees"); show(); }),
+          links(addr, pair).then(l => { L = l; setV17(); pending.delete("V17 socials"); show(); return lpP; })
+            .then(lp => athRow(pair, lp.ids.length ? lp.ids : [pair.pairAddress], L)).then(a => { athFrom(a, rows); pending.delete("V9 ATH"); show(); }),
+        ]);
+      }
+    } else if (EVM[chain]) {
+      const c = EVM[chain];
+      baseChecks(null, pair, add, chain);
+      const info = pair.info || {};
+      for (const so of info.socials || []) if (so.type in L || ["twitter", "telegram"].includes(so.type)) L[so.type] = L[so.type] || so.url;
+      if ((info.websites || []).length) L.website = info.websites[0].url;
+      L.twitterIsPost = (L.twitter || "").includes("/status/");
+      setV17();
+      pending = new Set(["Sikkerhed (honeypot, mint, holders)", "V1/V6 launch-candles", "V3 handler", "V9 ATH"]);
+      show();
+      const lpP = evmLaunch(addr, c.gt);
       await Promise.all([
-        lpP.then(lp => candleChecks(lp.pool, add)).then(() => { pending.delete("V1/V6 launch-candles"); show(); }),
-        tradeChecks(pair, rc, add).then(tr => { pending.delete("V3 handler"); show(); return feeCheck(tr, pair, rpc, add); })
-          .then(() => { pending.delete("V5 fees"); show(); }),
-        links(addr, pair).then(l => {
-          L = l;
-          const found = ["twitter", "website", "telegram"].filter(k => L[k]);
-          const i17 = rows.findIndex(r => r.rule.startsWith("V17"));
-          if (found.length) {
-            rows[i17] = { rule: rows[i17].rule, s: !L.twitterIsPost || found.length > 1 ? GRN : YEL, v: found.join(", "),
-              n: L.twitterIsPost ? "X-linket er et enkelt opslag, ikke en projektkonto" : "DexScreener" + (L.pump ? " + pump.fun" : "") };
-          } else if (L.pumpError) {
-            rows[i17] = { rule: rows[i17].rule, s: NA, v: "ingen på DexScreener, pump.fun blokerer browseren",
-              n: `åbn pump.fun/coin/${addr} og se om der er X/Telegram/website/beskrivelse` };
-          } else {
-            rows[i17] = { rule: rows[i17].rule, s: RED, v: "ingen socials/website", n: "DexScreener + pump.fun" };
-          }
-          pending.delete("V17 socials"); show();
-          return lpP;
-        }).then(lp => athRow(pair, lp.ids.length ? lp.ids : [pair.pairAddress], L)).then(a => {
-          if (a) {
-            const dd = 1 - a.now / a.ath;
-            const i9 = rows.findIndex(r => r.rule.startsWith("V9 momentum"));
-            rows.splice(i9 + 1, 0, { rule: "V9 fald fra top (info)", s: dd > 0.75 ? YEL : GRN,
-              v: `${(dd * 100).toFixed(0)} % under ATH (${fmt(a.ath)})`, n: "Sal: ægte projekter trækker typisk ~50 % tilbage" });
-          }
-          pending.delete("V9 ATH"); show();
-        }),
+        evmChecks(addr, c, add).then(holders => { pending.delete("Sikkerhed (honeypot, mint, holders)"); show(); return tradeChecks(pair, holders, add, c.gt); })
+          .then(() => { pending.delete("V3 handler"); show(); }),
+        lpP.then(lp => lp.pool ? candleChecks(lp.pool, add, c.gt) : add("V1 første candle (bundle ved launch)", NA, "ingen pools hos GeckoTerminal"))
+          .then(() => { pending.delete("V1/V6 launch-candles"); show(); return lpP; })
+          .then(lp => athRow(pair, lp.ids.length ? lp.ids : [pair.pairAddress], L, c.gt)).then(a => { athFrom(a, rows); pending.delete("V9 ATH"); show(); }),
       ]);
+    } else {
+      baseChecks(null, pair, add, chain);
+      setV17();
+      if (pair.pairAddress) add("Sikkerhedsdata", NA, `findes ikke for ${chain}`, "honeypot, mint, holders og LP kan ikke tjekkes på denne kæde");
     }
     show();
     log("Færdig.");
@@ -367,7 +489,7 @@ async function run(addr) {
   }
 }
 
-function render(addr, name, pair, L, rows, pending = []) {
+function render(addr, name, pair, L, rows, pending = [], chain = "solana") {
   const { buy: b0, reasons } = score(rows);
   const missing = pending.length ? [] : rows.filter(r => r.s === NA && !r.rule.startsWith("V9"));
   // an unscanned check must never look like a pass
@@ -376,7 +498,7 @@ function render(addr, name, pair, L, rows, pending = []) {
   const x = L.twitter ? `${L.twitter}${L.twitterIsPost ? " (opslag, ikke projektkonto)" : ""}` : "ingen X-link";
 
   const text = [
-    `# ${name}  (${addr})`, pair.url || "", `X: ${x}`, "",
+    `# ${name}  (${addr})`, `Kæde: ${chain}`, pair.url || "", `X: ${x}`, "",
     ...(missing.length ? [`## ⚠️ UFULDSTÆNDIG — ${missing.length} tjek IKKE scannet, køb ikke før de er løst:`,
       ...missing.map(r => `- ⬜ ${r.rule}: ${r.v}${r.n ? ` (${r.n})` : ""}`), ""] : []),
     `## SCORE ${buy}/10 · ${verdict(buy).t}`, SCALE, ...reasons.map(r => "- " + r), "",
@@ -396,13 +518,14 @@ function render(addr, name, pair, L, rows, pending = []) {
     ${pending.length ? `<div class="warn"><strong>Scanner stadig:</strong> ${esc(pending.join(", "))}. Køb ikke før den er færdig.</div>` : ""}
     <div class="links">
       ${pair.url ? `<a href="${esc(pair.url)}" target="_blank" rel="noopener">DexScreener</a>` : ""}
-      <a href="https://rugcheck.xyz/tokens/${esc(addr)}" target="_blank" rel="noopener">Rugcheck</a>
-      <a href="https://pump.fun/coin/${esc(addr)}" target="_blank" rel="noopener">pump.fun</a>
+      ${chain === "solana" ? `<a href="https://rugcheck.xyz/tokens/${esc(addr)}" target="_blank" rel="noopener">Rugcheck</a>
+      <a href="https://pump.fun/coin/${esc(addr)}" target="_blank" rel="noopener">pump.fun</a>` : `<a href="https://honeypot.is/?address=${esc(addr)}" target="_blank" rel="noopener">honeypot.is</a>`}
       ${L.twitter ? `<a href="${esc(L.twitter)}" target="_blank" rel="noopener">X${L.twitterIsPost ? " (opslag)" : ""}</a>` : "<span>ingen X-link</span>"}
     </div>
     ${missing.length ? `<div class="warn red"><strong>⚠️ UFULDSTÆNDIG: ${missing.length} tjek er IKKE scannet. Køb ikke før de er løst.</strong>
       <ul>${missing.map(r => `<li>⬜ ${esc(r.rule)}: ${esc(r.v)}${r.n ? ` (${esc(r.n)})` : ""}</li>`).join("")}</ul></div>` : ""}
     <ul>${reasons.map(r => `<li>${esc(r)}</li>`).join("")}</ul>
+    ${chain !== "solana" && pair.pairAddress ? `<p class="sub">Kæde: ${esc((EVM[chain] || {}).name || chain)}. Solana-reglerne V4 graduated (pump.fun), V5 fees i SOL og V8 insider-graf (Rugcheck) findes ikke her og er sprunget over. I stedet tjekkes honeypot, skat og ejer-magt.</p>` : ""}
     <p class="sub">Automatisk: ${reds} røde, ${yels} gule, ${grns} grønne. Hvert 🟥 på V4, V5, V14, V15, V16, V17 er et hårdt nej. Reglerne er lavet til nye memecoins ($50K–få $M); på store etablerede coins giver V14/V15 falske røde.</p>
     <div class="tbl"><table>
       <thead><tr><th>Tjek</th><th></th><th>Værdi</th><th>Note</th></tr></thead>
@@ -432,12 +555,11 @@ $("addr").addEventListener("paste", e => {
 $("f").addEventListener("submit", e => {
   e.preventDefault();
   const a = $("addr").value.trim();
-  if (/^0x[0-9a-fA-F]{40}$/.test(a)) { $("log").textContent = "Det er en 0x-adresse (Ethereum, Base, BSC o.l.), ikke Solana. Tjekket virker kun på Solana-coins."; return; }
-  if (!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(a)) { $("log").textContent = "Det ligner ikke en Solana-adresse (32–44 tegn, base58)."; return; }
+  if (!/^[\w:.-]{20,130}$/.test(a)) { $("log").textContent = "Det ligner ikke en token-adresse. Indsæt contract-adressen (Solana, 0x… osv.)."; return; }
   run(a);
 });
-const BASE58 = /[1-9A-HJ-NP-Za-km-z]{32,44}/g;
-const COIN_SITES = ["dexscreener.com", "pump.fun", "gmgn.ai", "axiom.trade", "photon-sol.tinyastro.io", "birdeye.so", "solscan.io", "rugcheck.xyz", "bullx.io", "geckoterminal.com"];
+const BASE58 = /0x[0-9a-fA-F]{40}|[1-9A-HJ-NP-Za-km-z]{32,44}/g;
+const COIN_SITES = ["dexscreener.com", "pump.fun", "gmgn.ai", "axiom.trade", "photon-sol.tinyastro.io", "photon.tinyastro.io", "birdeye.so", "solscan.io", "rugcheck.xyz", "bullx.io", "geckoterminal.com", "dextools.io", "etherscan.io", "basescan.org", "bscscan.com", "four.meme", "honeypot.is"];
 const IS_EXT = typeof chrome !== "undefined" && !!(chrome.tabs && chrome.tabs.query);
 
 function start(a) { $("addr").value = a; $("f").requestSubmit(); }
@@ -452,10 +574,13 @@ async function fromTab() {
   const ids = [...new Set(tab.url.match(BASE58) || [])];
   for (const id of ids) {
     try {
-      if (((await req(`https://api.dexscreener.com/latest/dex/tokens/${id}`, null, 2)).pairs || []).length) return id;
-      const p = await req(`https://api.dexscreener.com/latest/dex/pairs/solana/${id}`, null, 2);
+      const t = ((await req(`https://api.dexscreener.com/latest/dex/tokens/${id}`, null, 2)).pairs || [])[0];
+      if (t) return { addr: id, symbol: t.baseToken.symbol };
+      const seg = new URL(tab.url).pathname.split("/")[1] || "";
+      const pc = host === "dexscreener.com" && seg ? seg : EVM_ADDR.test(id) ? "ethereum" : "solana";
+      const p = await req(`https://api.dexscreener.com/latest/dex/pairs/${pc}/${id}`, null, 2);
       const pair = (p.pairs || [])[0] || p.pair;
-      if (pair && pair.baseToken) return pair.baseToken.address;
+      if (pair && pair.baseToken) return { addr: pair.baseToken.address, symbol: pair.baseToken.symbol };
     } catch {}
   }
   return null;
@@ -470,9 +595,12 @@ const initial = new URLSearchParams(location.search).get("a") || location.hash.s
 // run a linked coin once, then clean the address bar so a bookmark never keeps an old coin
 if (initial) { history.replaceState(null, "", location.pathname); start(initial); }
 else if (IS_EXT) {
-  $("log").textContent = "Leder efter coin i den åbne fane …";
-  fromTab().then(a => {
-    $("log").textContent = a ? "" : "Ingen coin i den åbne fane. Indsæt en adresse.";
-    if (a) start(a);
-  });
+  // never start on its own: the popup opens empty, and the open tab's coin is only offered as a button
+  fromTab().then(c => {
+    if (!c) return;
+    $("tab").textContent = `Tjek ${c.symbol || "coin"} fra fanen`;
+    $("tab").title = c.addr;
+    $("tab").hidden = false;
+    $("tab").onclick = () => start(c.addr);
+  }).catch(() => {});
 }
