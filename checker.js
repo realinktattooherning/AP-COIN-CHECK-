@@ -289,16 +289,21 @@ async function launchPool(mint, dex, best) {
       const first = pools.reduce((a, b) => (Date.parse(b.attributes.pool_created_at) < Date.parse(a.attributes.pool_created_at) ? b : a));
       return { pool: { pairAddress: first.attributes.address, dexId: first.relationships.dex.data.id, pairCreatedAt: Date.parse(first.attributes.pool_created_at), launch: true }, ids };
     }
-    return { pool: ((dex && dex.pairs) || []).find(p => p.dexId === "pumpfun") || best, ids };
+    // GeckoTerminal lists the coin only as the quote side (or not at all): judge the launch on the main pool
+    return { pool: ((dex && dex.pairs) || []).find(p => p.dexId === "pumpfun") || { ...best, launch: true }, ids };
   } catch {
-    return { pool: ((dex && dex.pairs) || []).find(p => p.dexId === "pumpfun") || best, ids: [] };
+    return { pool: ((dex && dex.pairs) || []).find(p => p.dexId === "pumpfun") || { ...best, launch: true }, ids: [] };
   }
 }
 
 const median = a => { if (!a.length) return 0; const s = [...a].sort((x, y) => x - y), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
 
+// the coin being checked: GeckoTerminal must price candles in it, else a pool listed the other way round shows the
+// other token's price (GRAIN showed a 5,557,429× "top")
+let CUR_MINT = "";
+
 async function poolCandles(pool, net) {
-  let url = `${gtPools(net)}${pool.pairAddress}/ohlcv/minute?aggregate=1&limit=1000`;
+  let url = `${gtPools(net)}${pool.pairAddress}/ohlcv/minute?aggregate=1&limit=1000&token=${CUR_MINT}`;
   const created = pool.pairCreatedAt;
   if (created) url += `&before_timestamp=${Math.floor(created / 1000) + 1000 * 60}`;
   const c = (await req(url)).data.attributes.ohlcv_list.sort((a, b) => a[0] - b[0]);
@@ -459,7 +464,7 @@ async function athRow(pair, poolIds, L, net = "solana") {
   for (const id of poolIds.slice(0, 2)) {
     try {
       // a thin pool's init candle can print an absurd price; drop highs over 50× the pool's median close
-      const d = (await req(`${gtPools(net)}${id}/ohlcv/day?limit=1000`)).data.attributes.ohlcv_list;
+      const d = (await req(`${gtPools(net)}${id}/ohlcv/day?limit=1000&token=${CUR_MINT}`)).data.attributes.ohlcv_list;
       const med = median(d.map(x => x[4]));
       hi = Math.max(hi, ...d.map(x => x[2]).filter(h => !med || h <= 50 * med));
     } catch {}
@@ -571,6 +576,7 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;",
 
 async function run(addr) {
   getCache.clear();
+  CUR_MINT = addr;
   $("go").disabled = true; $("log").textContent = ""; $("out").hidden = true;
   const rpcIn = $("rpc").value.trim();
   store.set("rpc", rpcIn);
