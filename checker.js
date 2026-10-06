@@ -133,7 +133,8 @@ function baseChecks(rc, pair, add, chain = "solana") {
     const cb = rc.creatorBalance || 0, supply = (rc.token || {}).supply || 0;
     if (supply) {
       const share = cb / supply * 100;
-      add("Dev/creator andel", share > 5 ? RED : share > 1 ? YEL : GRN, f1(share) + " %");
+      // compare at the shown precision: a launchpad's fixed 5.0 % creator allocation is a warning, not over the line
+      add("Dev/creator andel", share >= 5.05 ? RED : share > 1 ? YEL : GRN, f1(share) + " %");
     }
     const danger = (rc.risks || []).filter(r => r.level === "danger").map(r => r.name);
     const warn = (rc.risks || []).filter(r => r.level === "warn").map(r => r.name);
@@ -151,9 +152,10 @@ function baseChecks(rc, pair, add, chain = "solana") {
       `MC ${fmt(mc)} / vol ${fmt(vol.h24)}`, "rødt når MC er over 1,5× volumen");
     const h1 = txns.h1 || {}, h24 = txns.h24 || {};
     const b1 = h1.buys || 0, s1 = h1.sells || 0;
-    add("V16 købere ≥ sælgere (1h)", s1 > b1 * 1.1 ? RED : s1 > b1 ? YEL : GRN,
+    // reel case: 20 buyers vs 35 sellers (1.75×); a few more sells than buys in one hour is normal profit-taking
+    add("V16 købere ≥ sælgere (1h)", s1 > b1 * 1.5 ? RED : s1 > b1 ? YEL : GRN,
       `1h ${h1.buys ?? "?"}/${h1.sells ?? "?"}, 24h ${h24.buys ?? "?"}/${h24.sells ?? "?"} (køb/salg)`,
-      "rødt ved >10 % flere salg; antal handler, ikke unikke wallets");
+      "rødt ved >50 % flere salg; antal handler, ikke unikke wallets");
     add("V17 beskrivelse/socials/website", NA, "?", "");
     const age = pair.pairCreatedAt ? (Date.now() - pair.pairCreatedAt) / 3600000 : null;
     add("V10 alder ≤ 1 døgn", age == null ? NA : age > 24 ? YEL : GRN, age == null ? "?" : f1(age) + " t");
@@ -204,14 +206,27 @@ async function launchPool(mint, dex, best) {
 
 const median = a => { if (!a.length) return 0; const s = [...a].sort((x, y) => x - y), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
 
-async function candleChecks(pool, add, net = "solana") {
+async function poolCandles(pool, net) {
   let url = `${gtPools(net)}${pool.pairAddress}/ohlcv/minute?aggregate=1&limit=1000`;
   const created = pool.pairCreatedAt;
   if (created) url += `&before_timestamp=${Math.floor(created / 1000) + 1000 * 60}`;
+  const c = (await req(url)).data.attributes.ohlcv_list.sort((a, b) => a[0] - b[0]);
+  return created ? c.filter(x => x[0] >= created / 1000 - 60) : c;
+}
+
+const MIN_CANDLES = 10;
+
+async function candleChecks(pool, add, net = "solana", main = null) {
   let c;
+  const created = pool.pairCreatedAt;
   try {
-    c = (await req(url)).data.attributes.ohlcv_list.sort((a, b) => a[0] - b[0]);
-    if (created) c = c.filter(x => x[0] >= created / 1000 - 60);
+    c = await poolCandles(pool, net);
+    // a launch pool that graduated within seconds (Meteora DBC, fast pump.fun runs) holds only a minute or two:
+    // judge the launch on the main pool instead, else "100 % of volume in minute 1" is guaranteed
+    if (c.length < MIN_CANDLES && main && main.pairAddress && main.pairAddress !== pool.pairAddress) {
+      const c2 = await poolCandles(main, net);
+      if (c2.length > c.length) { c = c2; pool = { pairAddress: main.pairAddress, dexId: main.dexId, pairCreatedAt: main.pairCreatedAt, launch: true }; }
+    }
   } catch (e) {
     // GeckoTerminal's free API has no minute candles older than ~6 months (401); launch-bundle rules are for new coins anyway
     if (/401/.test(e.message) && created && Date.now() - created > 150 * 864e5) {
@@ -223,7 +238,12 @@ async function candleChecks(pool, add, net = "solana") {
     add("V6 én wick til himlen", NA, "ingen candles");
     return;
   }
-  if (!c.length) { add("V1 første candle (bundle ved launch)", NA, "ingen candles"); return; }
+  if (c.length < MIN_CANDLES) {
+    const why = `for ny: kun ${c.length} min handel`;
+    add("V1 første candle (bundle ved launch)", NA, why, `kræver ${MIN_CANDLES} min — tjek igen om lidt`);
+    add("V6 én wick til himlen", NA, why, `kræver ${MIN_CANDLES} min — tjek igen om lidt`);
+    return;
+  }
   const vols = c.map(x => x[5]);
   const share = c[0][5] / (vols.reduce((s, v) => s + v, 0) || 1);
   const vsMed = c.length > 5 ? c[0][5] / (median(vols.slice(1, 31)) || 1) : null;
@@ -468,7 +488,7 @@ async function run(addr) {
         const owners = new Set(((rc || {}).topHolders || []).map(h => String(h.owner).toLowerCase()));
         const lpP = launchPool(addr, dex, pair);
         await Promise.all([
-          lpP.then(lp => candleChecks(lp.pool, add)).then(() => { pending.delete("V1/V6 launch-candles"); show(); }),
+          lpP.then(lp => candleChecks(lp.pool, add, "solana", pair)).then(() => { pending.delete("V1/V6 launch-candles"); show(); }),
           tradeChecks(pair, owners, add).then(tr => { pending.delete("V3 handler"); show(); return feeCheck(tr, pair, rpc, add); })
             .then(() => { pending.delete("V5 fees"); show(); }),
           links(addr, pair).then(l => { L = l; setV17(); pending.delete("V17 socials"); show(); return lpP; })
@@ -489,7 +509,7 @@ async function run(addr) {
       await Promise.all([
         evmChecks(addr, c, add).then(holders => { pending.delete("Sikkerhed (honeypot, mint, holders)"); show(); return tradeChecks(pair, holders, add, c.gt); })
           .then(() => { pending.delete("V3 handler"); show(); }),
-        lpP.then(lp => lp.pool ? candleChecks(lp.pool, add, c.gt) : add("V1 første candle (bundle ved launch)", NA, "ingen pools hos GeckoTerminal"))
+        lpP.then(lp => lp.pool ? candleChecks(lp.pool, add, c.gt, pair) : add("V1 første candle (bundle ved launch)", NA, "ingen pools hos GeckoTerminal"))
           .then(() => { pending.delete("V1/V6 launch-candles"); show(); return lpP; })
           .then(lp => athRow(pair, lp.ids.length ? lp.ids : [pair.pairAddress], L, c.gt)).then(a => { athFrom(a, rows); pending.delete("V9 ATH"); show(); }),
       ]);
