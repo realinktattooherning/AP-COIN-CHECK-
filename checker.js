@@ -433,10 +433,10 @@ $("f").addEventListener("submit", e => {
   e.preventDefault();
   const a = $("addr").value.trim();
   if (!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(a)) { $("log").textContent = "Det ligner ikke en Solana-adresse (32–44 tegn, base58)."; return; }
-  history.replaceState(null, "", "?a=" + a);
   run(a);
 });
 const BASE58 = /[1-9A-HJ-NP-Za-km-z]{32,44}/g;
+const COIN_SITES = ["dexscreener.com", "pump.fun", "gmgn.ai", "axiom.trade", "photon-sol.tinyastro.io", "birdeye.so", "solscan.io", "rugcheck.xyz", "bullx.io", "geckoterminal.com"];
 const IS_EXT = typeof chrome !== "undefined" && !!(chrome.tabs && chrome.tabs.query);
 
 function start(a) { $("addr").value = a; $("f").requestSubmit(); }
@@ -444,7 +444,11 @@ function start(a) { $("addr").value = a; $("f").requestSubmit(); }
 async function fromTab() {
   // extension popup: take the coin from the open DexScreener / pump.fun / terminal tab
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  const ids = [...new Set(((tab && tab.url) || "").match(BASE58) || [])];
+  let host = "";
+  try { host = new URL(tab.url).hostname.replace(/^www\./, ""); } catch {}
+  // only coin sites; any other page's long ids must not be mistaken for a token
+  if (!COIN_SITES.some(d => host === d || host.endsWith("." + d))) return null;
+  const ids = [...new Set(tab.url.match(BASE58) || [])];
   for (const id of ids) {
     try {
       if (((await req(`https://api.dexscreener.com/latest/dex/tokens/${id}`, null, 2)).pairs || []).length) return id;
@@ -462,8 +466,12 @@ if (IS_EXT) {
   $("big").onclick = () => chrome.tabs.create({ url: chrome.runtime.getURL("index.html") + "?a=" + encodeURIComponent($("addr").value.trim()) });
 }
 const initial = new URLSearchParams(location.search).get("a") || location.hash.slice(1);
-if (initial) start(initial);
+// run a linked coin once, then clean the address bar so a bookmark never keeps an old coin
+if (initial) { history.replaceState(null, "", location.pathname); start(initial); }
 else if (IS_EXT) {
   $("log").textContent = "Leder efter coin i den åbne fane …";
-  fromTab().then(a => { $("log").textContent = a ? "" : "Ingen coin fundet i fanen. Indsæt adressen."; if (a) start(a); });
+  fromTab().then(a => {
+    $("log").textContent = a ? "" : "Ingen coin i den åbne fane. Indsæt en adresse.";
+    if (a) start(a);
+  });
 }
