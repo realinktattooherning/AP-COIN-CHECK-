@@ -188,18 +188,42 @@ function baseChecks(rc, pair, add, chain = "solana") {
   }
 }
 
-async function links(mint, pair) {
-  // pump.fun blocks browser calls (403 with an Origin header); DexScreener is the reliable source here
+const IPFS_GATEWAYS = ["https://gateway.pinata.cloud/ipfs/", "https://ipfs.filebase.io/ipfs/", "https://4everland.io/ipfs/"];
+
+// the coin's own metadata JSON (pump.fun-style: description, twitter, website, telegram); ipfs.io refuses scripts,
+// so IPFS links go through other public gateways that allow browsers
+async function tokenMetadata(uri) {
+  const m = String(uri || "").match(/\/ipfs\/([A-Za-z0-9]+)/);
+  for (const url of m ? IPFS_GATEWAYS.map(g => g + m[1]) : uri ? [uri] : []) {
+    try { const d = await req(url, null, 1); if (d && typeof d === "object") return d; } catch {}
+  }
+  return null;
+}
+
+async function links(mint, pair, rc) {
+  // socials + description from DexScreener, pump.fun (blocked on the website, works in the extension),
+  // the coin's own metadata and Rugcheck
   const info = pair.info || {};
-  const L = { twitter: null, website: null, telegram: null, pump: null };
+  const L = { twitter: null, website: null, telegram: null, pump: null, description: "", sources: [] };
   for (const s of info.socials || []) if (s.type in L && !L[s.type]) L[s.type] = s.url;
   if ((info.websites || []).length) L.website = info.websites[0].url;
-  try {
-    const pf = await req(`https://frontend-api-v3.pump.fun/coins-v2/${mint}`, null, 1);
+  if (pair.info) L.sources.push("DexScreener");
+  const [pf, meta] = await Promise.all([
+    req(`https://frontend-api-v3.pump.fun/coins-v2/${mint}`, null, 1).catch(() => null),
+    tokenMetadata(((rc || {}).tokenMeta || {}).uri),
+  ]);
+  if (pf) {
     for (const k of ["twitter", "website", "telegram"]) L[k] = L[k] || pf[k];
-    L.pump = pf;
-  } catch { L.pumpError = true; }
-  L.twitterIsPost = (L.twitter || "").includes("/status/");
+    L.description = L.description || String(pf.description || "").trim();
+    L.pump = pf; L.sources.push("pump.fun");
+  } else L.pumpError = true;
+  if (meta) {
+    for (const k of ["twitter", "website", "telegram"]) L[k] = L[k] || meta[k] || null;
+    L.description = L.description || String(meta.description || "").trim();
+    L.sources.push("metadata");
+  }
+  if (rc && rc.fileMeta) { L.description = L.description || String(rc.fileMeta.description || "").trim(); L.sources.push("Rugcheck"); }
+  L.twitterIsPost = /\/status\/|\/search/.test(L.twitter || "");
   return L;
 }
 
@@ -507,16 +531,21 @@ async function run(addr) {
       const found = ["twitter", "website", "telegram"].filter(k => L[k]);
       const i17 = rows.findIndex(r => r.rule.startsWith("V17"));
       if (i17 < 0) return;
+      const src = (L.sources || []).join(" + ");
+      // reel rule: a hard no only when description, socials AND website are all missing
       if (found.length) {
         rows[i17] = { rule: rows[i17].rule, s: !L.twitterIsPost || found.length > 1 ? GRN : YEL, v: found.join(", "),
-          n: L.twitterIsPost ? "X-linket er et enkelt opslag, ikke en projektkonto" : "DexScreener" + (L.pump ? " + pump.fun" : "") };
+          n: L.twitterIsPost ? "X-linket er et opslag/søgning, ikke en projektkonto" : src };
+      } else if (L.description) {
+        rows[i17] = { rule: rows[i17].rule, s: YEL, v: "kun beskrivelse, ingen socials/website", n: src };
       } else if (chain !== "solana") {
         rows[i17] = { rule: rows[i17].rule, s: NA, v: "ingen DexScreener-profil", n: "se coinens side/X selv for beskrivelse og socials" };
-      } else if (L.pumpError) {
-        rows[i17] = { rule: rows[i17].rule, s: NA, v: "ingen på DexScreener, pump.fun svarede ikke",
-          n: `åbn pump.fun/coin/${addr} og se om der er X/Telegram/website/beskrivelse` };
+      } else if ((L.sources || []).some(x => x === "pump.fun" || x === "metadata")) {
+        // only pump.fun and the metadata carry links; Rugcheck has just the description, so it cannot prove "no socials"
+        rows[i17] = { rule: rows[i17].rule, s: RED, v: "ingen beskrivelse, socials eller website", n: src };
       } else {
-        rows[i17] = { rule: rows[i17].rule, s: RED, v: "ingen socials/website", n: "DexScreener + pump.fun" };
+        rows[i17] = { rule: rows[i17].rule, s: NA, v: "pump.fun og metadata svarede ikke",
+          n: `åbn pump.fun/coin/${addr} og se om der er X/Telegram/website/beskrivelse` };
       }
     };
 
@@ -531,7 +560,7 @@ async function run(addr) {
           lpP.then(lp => candleChecks(lp.pool, add, "solana", pair)).then(() => { pending.delete("V1/V6 launch-candles"); show(); }),
           tradeChecks(pair, owners, add).then(tr => { pending.delete("V3 handler"); show(); return feeCheck(tr, pair, rpc, add, addr); })
             .then(() => { pending.delete("V5 fees"); show(); }),
-          links(addr, pair).then(l => { L = l; setV17(); pending.delete("V17 socials"); show(); return lpP; })
+          links(addr, pair, rc).then(l => { L = l; setV17(); pending.delete("V17 socials"); show(); return lpP; })
             .then(lp => athRow(pair, lp.ids.length ? lp.ids : [pair.pairAddress], L)).then(a => { athFrom(a, rows); pending.delete("V9 ATH"); show(); }),
         ]);
       }
