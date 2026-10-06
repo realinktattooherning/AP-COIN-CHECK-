@@ -179,6 +179,11 @@ async function launchPool(mint, dex, best) {
     const pf = pools.find(p => p.relationships.dex.data.id === "pump-fun");
     const ids = pools.map(p => p.attributes.address);
     if (pf) return { pool: { pairAddress: pf.attributes.address, dexId: "pumpfun", pairCreatedAt: Date.parse(pf.attributes.pool_created_at) }, ids };
+    // not a pump.fun coin (Meteora, LaunchLab, Bonk …): its earliest pool is the launch
+    if (pools.length) {
+      const first = pools.reduce((a, b) => (Date.parse(b.attributes.pool_created_at) < Date.parse(a.attributes.pool_created_at) ? b : a));
+      return { pool: { pairAddress: first.attributes.address, dexId: first.relationships.dex.data.id, pairCreatedAt: Date.parse(first.attributes.pool_created_at), launch: true }, ids };
+    }
     return { pool: ((dex && dex.pairs) || []).find(p => p.dexId === "pumpfun") || best, ids };
   } catch {
     return { pool: ((dex && dex.pairs) || []).find(p => p.dexId === "pumpfun") || best, ids: [] };
@@ -211,8 +216,8 @@ async function candleChecks(pool, add, net = "solana") {
   const share = c[0][5] / (vols.reduce((s, v) => s + v, 0) || 1);
   const vsMed = c.length > 5 ? c[0][5] / (median(vols.slice(1, 31)) || 1) : null;
   if (pool.dexId !== "pumpfun" && !pool.launch) {
-    add("V1 første candle (bundle ved launch)", NA, "launch-pool (pump.fun) ikke fundet",
-      `kun ${pool.dexId}-pool — ikke en pump.fun-coin, eller API fejlede`);
+    add("V1 første candle (bundle ved launch)", NA, "launch-pool ikke fundet",
+      "GeckoTerminal svarede ikke med coinens pools — prøv igen om et minut");
   } else {
     const bad = share >= 0.3 || (vsMed || 0) >= 20, warn = share >= 0.15 || (vsMed || 0) >= 10;
     add("V1 første candle (bundle ved launch)", bad ? RED : warn ? YEL : GRN,

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "AP Coin Check",
-  "version": "1.1",
+  "version": "1.2",
   "description": "Rug-pull-tjek for Solana memecoins. Kun læsning, rører aldrig en wallet.",
   "action": {
     "default_popup": "index.html",
