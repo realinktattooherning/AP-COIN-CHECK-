@@ -420,6 +420,15 @@ function render(addr, name, pair, L, rows, pending = []) {
 }
 
 $("rpc").value = store.get("rpc");
+// paste replaces the old address and starts right away; a click selects all so typing replaces it too
+$("addr").addEventListener("focus", e => e.target.select());
+$("addr").addEventListener("paste", e => {
+  const t = ((e.clipboardData && e.clipboardData.getData("text")) || "").trim();
+  if (!t) return;
+  e.preventDefault();
+  $("addr").value = t;
+  $("f").requestSubmit();
+});
 $("f").addEventListener("submit", e => {
   e.preventDefault();
   const a = $("addr").value.trim();
