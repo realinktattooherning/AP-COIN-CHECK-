@@ -281,6 +281,12 @@ async function athRow(pair, poolIds, L) {
   return hi ? { ath: Math.max(hi * mc / price, mc), now: mc } : null;
 }
 
+// one number for the user: 1-3 don't buy, 4-6 wait, 7-10 buy candidate
+function verdict(buy) {
+  return buy <= 3 ? { s: RED, t: "KØB IKKE" } : buy <= 6 ? { s: YEL, t: "VENT / FORSIGTIG" } : { s: GRN, t: "KØB-KANDIDAT" };
+}
+const SCALE = "1-3 = køb ikke · 4-6 = vent/forsigtig · 7-10 = køb-kandidat (tjek selv hype og memet)";
+
 function score(rows) {
   const hard = rows.filter(r => r.s === RED && HARD_NO.some(h => r.rule.startsWith(h)));
   const soft = rows.filter(r => r.s === RED && !hard.includes(r));
@@ -362,7 +368,7 @@ async function run(addr) {
 }
 
 function render(addr, name, pair, L, rows, pending = []) {
-  const { buy: b0, risk, reasons } = score(rows);
+  const { buy: b0, reasons } = score(rows);
   const missing = pending.length ? [] : rows.filter(r => r.s === NA && !r.rule.startsWith("V9"));
   // an unscanned check must never look like a pass
   const buy = missing.length ? Math.min(b0, 3) : b0;
@@ -373,7 +379,7 @@ function render(addr, name, pair, L, rows, pending = []) {
     `# ${name}  (${addr})`, pair.url || "", `X: ${x}`, "",
     ...(missing.length ? [`## ⚠️ UFULDSTÆNDIG — ${missing.length} tjek IKKE scannet, køb ikke før de er løst:`,
       ...missing.map(r => `- ⬜ ${r.rule}: ${r.v}${r.n ? ` (${r.n})` : ""}`), ""] : []),
-    `## KØB ${buy}/10 · RISIKO ${risk}/10`, ...reasons.map(r => "- " + r), "",
+    `## SCORE ${buy}/10 · ${verdict(buy).t}`, SCALE, ...reasons.map(r => "- " + r), "",
     `Automatisk: ${reds} røde, ${yels} gule, ${grns} grønne`, "",
     ...rows.map(r => `${ICON[r.s]} ${r.rule} | ${r.v}${r.n ? " | " + r.n : ""}`), "",
     "Tjekker du selv:", ...MANUAL.map(m => "- " + m),
@@ -382,8 +388,11 @@ function render(addr, name, pair, L, rows, pending = []) {
   $("out").innerHTML = `
     <div class="verdict">
       <h2>${esc(name)}</h2>
-      <span class="score">${pending.length ? "FORELØBIG · " : ""}KØB ${pending.length ? Math.min(buy, 3) : buy}/10 · RISIKO ${risk}/10</span>
+      ${pending.length
+        ? `<span class="score p-NA">SCANNER … foreløbig ${Math.min(buy, 3)}/10</span>`
+        : `<span class="score p-${verdict(buy).s}">${buy}/10 · ${verdict(buy).t}</span>`}
     </div>
+    <p class="sub">${SCALE}. Mangler et tjek, er scoren højst 3.</p>
     ${pending.length ? `<div class="warn"><strong>Scanner stadig:</strong> ${esc(pending.join(", "))}. Køb ikke før den er færdig.</div>` : ""}
     <div class="links">
       ${pair.url ? `<a href="${esc(pair.url)}" target="_blank" rel="noopener">DexScreener</a>` : ""}

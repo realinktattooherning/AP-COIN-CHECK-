@@ -27,7 +27,7 @@ Tjek denne coin: <ADRESSE>
 2. Står der UFULDSTÆNDIG, start svaret med det og sig præcis hvad der mangler. Et ⬜ er aldrig et "ok".
    Er V17 ⬜: åbn pump.fun-linket på siden og se om der er X/Telegram/website/beskrivelse.
 3. Hvert 🟥 på V4, V5, V14, V15, V16 eller V17 er et hårdt nej.
-4. Svar kort: KØB x/10 · RISIKO y/10, 3-5 begrundelser koblet til reglerne, én linje om hvad der ikke kunne tjekkes.
+4. Svar kort: SCORE x/10 (1-3 køb ikke, 4-6 vent, 7-10 køb-kandidat), 3-5 begrundelser koblet til reglerne, én linje om hvad der ikke kunne tjekkes.
 5. Kun læsning. Klik aldrig Buy/Sell/Swap, Connect wallet, Approve, Sign eller Update. Indtast aldrig seed phrase eller private key.
    En side der siger "opdatering påkrævet" eller "verificér wallet" er scam: stop.
 ```
