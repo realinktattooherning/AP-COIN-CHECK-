@@ -120,6 +120,45 @@ function bundleLevel(cl) {
   return (n >= 4 && p >= 1.3) || n >= 6 ? RED : n >= 4 || (n === 3 && p >= 1.3) ? YEL : GRN;
 }
 
+// launch curves on every Solana launchpad (DexScreener and GeckoTerminal spellings): no LP, not graduated
+const CURVE = /pump-?fun$|dbc|launchlab|moonshot|boop/i;
+const isCurve = pair => CURVE.test(pair.dexId || "");
+
+// GeckoTerminal pool → the DexScreener pair shape the checks read. Used when DexScreener does not know the coin yet
+// (brand-new LaunchLab/Bonk coins) or has no USD figures for its main pool (coin paired with cbBTC, another memecoin …)
+function gtPair(p) {
+  const a = p.attributes, [base, quote] = (a.name || "").split(" / ");
+  const t = k => ({ buys: ((a.transactions || {})[k] || {}).buys || 0, sells: ((a.transactions || {})[k] || {}).sells || 0 });
+  const v = a.volume_usd || {}, pc = a.price_change_percentage || {};
+  const dexId = { "pump-fun": "pumpfun", "meteora-dbc": "meteoradbc", "raydium-launchlab": "launchlab" }[p.relationships.dex.data.id] || p.relationships.dex.data.id;
+  return {
+    chainId: "solana", dexId, pairAddress: a.address, url: `https://www.geckoterminal.com/solana/pools/${a.address}`,
+    baseToken: { symbol: base }, quoteToken: { symbol: (quote || "").split(" ")[0] },
+    marketCap: Number(a.market_cap_usd || a.fdv_usd) || undefined, priceUsd: a.base_token_price_usd,
+    liquidity: { usd: Number(a.reserve_in_usd) || 0 },
+    volume: { h24: Number(v.h24) || 0, h6: Number(v.h6) || 0, h1: Number(v.h1) || 0, m5: Number(v.m5) || 0 },
+    txns: { h24: t("h24"), h6: t("h6"), h1: t("h1"), m5: t("m5") },
+    priceChange: { m5: pc.m5, h1: pc.h1, h6: pc.h6, h24: pc.h24 },
+    pairCreatedAt: Date.parse(a.pool_created_at), source: "GeckoTerminal",
+  };
+}
+
+async function gtFallback(addr, pair) {
+  // DexScreener has no pair, or no USD figures for it: take GeckoTerminal's real pool (≥ $1K reserve, else most trades)
+  if (pair.pairAddress && (pair.marketCap || pair.fdv)) return pair;
+  let pools;
+  try { pools = ownPools(await req(`https://api.geckoterminal.com/api/v2/networks/solana/tokens/${addr}/pools?page=1`), addr); } catch { return pair; }
+  if (!pools.length) return pair;
+  const res = p => Number(p.attributes.reserve_in_usd) || 0;
+  const tx = p => { const t = (p.attributes.transactions || {}).h24 || {}; return (t.buys || 0) + (t.sells || 0); };
+  const real = pools.filter(p => res(p) >= 1000);
+  const best = real.length ? real.reduce((b, p) => (res(p) > res(b) ? p : b)) : pools.reduce((b, p) => (tx(p) > tx(b) ? p : b));
+  if (pair.pairAddress && !real.length) return pair; // only dust on GeckoTerminal too: keep DexScreener's main pool (shown as unknown)
+  const g = gtPair(best);
+  // keep DexScreener's socials if it had the coin
+  return pair.pairAddress ? { ...g, info: pair.info, url: pair.url } : g;
+}
+
 function baseChecks(rc, pair, add, chain = "solana") {
   const mc = pair.marketCap || pair.fdv;
   const vol = pair.volume || {}, txns = pair.txns || {};
@@ -140,7 +179,8 @@ function baseChecks(rc, pair, add, chain = "solana") {
     add("Mint authority revoked", rc.mintAuthority ? RED : GRN, rc.mintAuthority ? "aktiv" : "revoked");
     add("Freeze authority revoked", rc.freezeAuthority ? RED : GRN, rc.freezeAuthority ? "aktiv" : "revoked");
     const locked = Math.max(0, ...(rc.markets || []).map(m => (m.lp || {}).lpLockedPct || 0));
-    add("LP låst/brændt", locked >= 90 ? GRN : locked >= 50 ? YEL : RED, locked.toFixed(0) + " %",
+    if (isCurve(pair)) add("LP låst/brændt", SKIP, "bonding curve, ingen LP endnu", "V4 graduated dækker det");
+    else add("LP låst/brændt", locked >= 90 ? GRN : locked >= 50 ? YEL : RED, locked.toFixed(0) + " %",
       "pump.fun/pumpswap-pools kan vise lavt selv om LP er brændt — tjek manuelt hvis rødt");
     const cb = rc.creatorBalance || 0, supply = (rc.token || {}).supply || 0;
     if (supply) {
@@ -157,7 +197,7 @@ function baseChecks(rc, pair, add, chain = "solana") {
   }
   if (pair.pairAddress) {
     const dexId = pair.dexId || "?";
-    if (chain === "solana") add("V4 graduated", dexId !== "pumpfun" ? GRN : RED, dexId, "pumpfun = stadig på bonding curve");
+    if (chain === "solana") add("V4 graduated", isCurve(pair) ? RED : GRN, dexId, "bonding curve (pump.fun, Meteora DBC, LaunchLab, Moonshot) = ikke graduated");
     // the main pool can trade against a token with no USD price (e.g. another memecoin): then MC/volume/liquidity are unknown
     const noUsd = mc == null ? `ingen dollarpris: hovedpoolen handler mod ${(pair.quoteToken || {}).symbol || "?"}` : "";
     add("V4 market cap ≥ $50-60K", mc == null ? NA : mc < 50000 ? RED : GRN, fmt(mc), noUsd || "sweet spot $50K-200K");
@@ -178,7 +218,9 @@ function baseChecks(rc, pair, add, chain = "solana") {
     const age = pair.pairCreatedAt ? (Date.now() - pair.pairCreatedAt) / 3600000 : null;
     add("V10 alder ≤ 1 døgn", age == null ? NA : age > 24 ? YEL : GRN, age == null ? "?" : f1(age) + " t");
     const liq = (pair.liquidity || {}).usd, ratio = liq && mc ? liq / mc * 100 : null;
-    if (ratio == null && dexId === "pumpfun") add("Likviditet ift. MC", SKIP, "bonding curve, ingen pool endnu", "V4 graduated dækker det");
+    if (ratio == null && isCurve(pair)) add("Likviditet ift. MC", SKIP, "bonding curve, ingen pool endnu", "V4 graduated dækker det");
+    // DexScreener reporting exactly $0 is a finding (empty or fake pool), not missing data
+    else if (liq === 0 && mc) add("Likviditet ift. MC", RED, "$0", "poolen har ingen likviditet");
     else add("Likviditet ift. MC", ratio == null ? NA : ratio < 5 ? RED : ratio < 10 ? YEL : GRN,
       ratio == null ? fmt(liq) : `${fmt(liq)} (${f1(ratio)} % af MC)`, ratio == null ? noUsd : "");
     const pc = pair.priceChange || {};
@@ -281,6 +323,13 @@ async function candleChecks(pool, add, net = "solana", main = null) {
     return;
   }
   if (c.length < MIN_CANDLES) {
+    // a fresh coin will get there in minutes; an older one with this little trading never will
+    if (pool.pairCreatedAt && Date.now() - pool.pairCreatedAt > 30 * 60000) {
+      const why = `for lidt handel: kun ${c.length} min med handler`;
+      add("V1 første candle (bundle ved launch)", SKIP, why, "kan ikke vurderes");
+      add("V6 én wick til himlen", SKIP, why, "kan ikke vurderes");
+      return;
+    }
     const why = `for ny: kun ${c.length} min handel`;
     add("V1 første candle (bundle ved launch)", NA, why, `kræver ${MIN_CANDLES} min — tjek igen om lidt`);
     add("V6 én wick til himlen", NA, why, `kræver ${MIN_CANDLES} min — tjek igen om lidt`);
@@ -484,6 +533,13 @@ function athFrom(a, rows) {
 function verdict(buy) {
   return buy <= 3 ? { s: RED, t: "KØB IKKE" } : buy <= 6 ? { s: YEL, t: "VENT / FORSIGTIG" } : { s: GRN, t: "KØB-KANDIDAT" };
 }
+// a coin still on its launch curve whose only red flags are your timing rules is not a rug: it is too early
+const TIMING = /^V4 graduated|^V4 market cap|^V5 /;
+function tooEarly(rows) {
+  const reds = rows.filter(r => r.s === RED);
+  return reds.some(r => r.rule.startsWith("V4 graduated")) && reds.every(r => TIMING.test(r.rule));
+}
+const EARLY_NOTE = "Ingen rugtegn fundet. Dine regler: vent til coinen er graduated, MC er over $50K og fees over 2 SOL.";
 const SCALE = "1-3 = køb ikke · 4-6 = vent/forsigtig · 7-10 = køb-kandidat (tjek selv hype og memet)";
 
 function score(rows) {
@@ -521,7 +577,8 @@ async function run(addr) {
       req(`https://api.dexscreener.com/latest/dex/tokens/${addr}`).catch(e => (log("FEJL dexscreener: " + e.message), null)),
       evmAddr ? null : req(`https://api.rugcheck.xyz/v1/tokens/${addr}/report`).catch(() => null),
     ]);
-    const pair = bestPair(dex, addr);
+    const pair = evmAddr ? bestPair(dex, addr) : await gtFallback(addr, bestPair(dex, addr));
+    if (pair.source) log("DexScreener manglede data — bruger GeckoTerminal");
     const chain = pair.chainId || (evmAddr ? "evm" : "solana");
     const name = (pair.baseToken || {}).symbol || ((rc || {}).tokenMeta || {}).symbol || addr;
     let L = { twitter: null };
@@ -601,6 +658,7 @@ function render(addr, name, pair, L, rows, pending = [], chain = "solana") {
   const missing = pending.length ? [] : rows.filter(r => r.s === NA && !r.rule.startsWith("V9"));
   // an unscanned check must never look like a pass
   const buy = missing.length ? Math.min(b0, 3) : b0;
+  const early = !pending.length && !missing.length && tooEarly(rows);
   const reds = rows.filter(r => r.s === RED).length, yels = rows.filter(r => r.s === YEL).length, grns = rows.filter(r => r.s === GRN).length;
   const x = L.twitter ? `${L.twitter}${L.twitterIsPost ? " (opslag, ikke projektkonto)" : ""}` : "ingen X-link";
 
@@ -608,7 +666,7 @@ function render(addr, name, pair, L, rows, pending = [], chain = "solana") {
     `# ${name}  (${addr})`, `Kæde: ${chain}`, pair.url || "", `X: ${x}`, "",
     ...(missing.length ? [`## ⚠️ UFULDSTÆNDIG — ${missing.length} tjek IKKE scannet, køb ikke før de er løst:`,
       ...missing.map(r => `- ⬜ ${r.rule}: ${r.v}${r.n ? ` (${r.n})` : ""}`), ""] : []),
-    `## SCORE ${buy}/10 · ${verdict(buy).t}`, SCALE, ...reasons.map(r => "- " + r), "",
+    `## SCORE ${buy}/10 · ${early ? "KØB IKKE ENDNU · FOR TIDLIGT" : verdict(buy).t}`, ...(early ? [EARLY_NOTE] : []), SCALE, ...reasons.map(r => "- " + r), "",
     `Automatisk: ${reds} røde, ${yels} gule, ${grns} grønne`, "",
     ...rows.map(r => `${ICON[r.s]} ${r.rule} | ${r.v}${r.n ? " | " + r.n : ""}`), "",
     "Tjekker du selv:", ...MANUAL.map(m => "- " + m),
@@ -619,8 +677,10 @@ function render(addr, name, pair, L, rows, pending = [], chain = "solana") {
       <h2>${esc(name)}</h2>
       ${pending.length
         ? `<span class="score p-NA">SCANNER … foreløbig ${Math.min(buy, 3)}/10</span>`
+        : early ? `<span class="score p-YEL">${buy}/10 · KØB IKKE ENDNU · FOR TIDLIGT</span>`
         : `<span class="score p-${verdict(buy).s}">${buy}/10 · ${verdict(buy).t}</span>`}
     </div>
+    ${early && !pending.length ? `<p><strong>${EARLY_NOTE}</strong></p>` : ""}
     <p class="sub">${SCALE}. Mangler et tjek, er scoren højst 3.</p>
     ${pending.length ? `<div class="warn"><strong>Scanner stadig:</strong> ${esc(pending.join(", "))}. Køb ikke før den er færdig.</div>` : ""}
     <div class="links">
