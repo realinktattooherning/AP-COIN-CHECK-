@@ -130,7 +130,7 @@ function baseChecks(rc, pair, add, chain = "solana") {
     add("V14 top 10 holders ≤ 30 %", top10 > 30 ? RED : GRN, f1(top10) + " %", "ekskl. pools/kendte konti");
     const cl = largestEqualCluster(top.slice(0, 20).map(h => h.pct || 0).filter(p => p >= 0.3));
     add("V2 ens holder-balancer (bundle)", bundleLevel(cl),
-      cl.length ? `${cl.length} wallets ~${cl[0].toFixed(2)} %` : "ingen", "rødt: ≥4 ens på ≥1,3 % eller ≥6 ens");
+      cl.length >= 2 ? `${cl.length} wallets ~${cl[0].toFixed(2)} %` : "ingen", "rødt: ≥4 ens på ≥1,3 % eller ≥6 ens");
     // share of supply held by Rugcheck's linked-wallet networks; the raw wallet count grows with any big holder base
     const supply0 = (rc.token || {}).supply || 0, nets = rc.insiderNetworks || [];
     const insPct = supply0 ? nets.reduce((s, n) => s + (n.tokenAmount || 0), 0) / supply0 * 100 : 0;
@@ -164,12 +164,16 @@ function baseChecks(rc, pair, add, chain = "solana") {
     // the reel's case was MC 18× volume; a few percent either way is noise in both numbers
     add("V15 market cap ≤ 24h-volumen", mc == null ? NA : mc > 1.5 * (vol.h24 || 0) ? RED : mc > (vol.h24 || 0) ? YEL : GRN,
       `MC ${fmt(mc)} / vol ${fmt(vol.h24)}`, noUsd || "rødt når MC er over 1,5× volumen");
-    const h1 = txns.h1 || {}, h24 = txns.h24 || {};
-    const b1 = h1.buys || 0, s1 = h1.sells || 0;
-    // reel case: 20 buyers vs 35 sellers (1.75×); a few more sells than buys in one hour is normal profit-taking
-    add("V16 købere ≥ sælgere (1h)", s1 > b1 * 1.5 ? RED : s1 > b1 ? YEL : GRN,
-      `1h ${h1.buys ?? "?"}/${h1.sells ?? "?"}, 24h ${h24.buys ?? "?"}/${h24.sells ?? "?"} (køb/salg)`,
-      "rødt ved >50 % flere salg; antal handler, ikke unikke wallets");
+    const h24 = txns.h24 || {};
+    // judge the shortest window with ≥20 trades: "0 buys / 1 sell" in the last hour says nothing
+    const win = ["h1", "h6", "h24"].find(k => ((txns[k] || {}).buys || 0) + ((txns[k] || {}).sells || 0) >= 20);
+    if (win) {
+      const b1 = txns[win].buys || 0, s1 = txns[win].sells || 0;
+      // reel case: 20 buyers vs 35 sellers (1.75×); a few more sells than buys is normal profit-taking
+      add("V16 købere ≥ sælgere (1h)", s1 > b1 * 1.5 ? RED : s1 > b1 ? YEL : GRN,
+        `${win.slice(1)}t ${b1}/${s1}, 24h ${h24.buys ?? "?"}/${h24.sells ?? "?"} (køb/salg)`,
+        "rødt ved >50 % flere salg; korteste vindue med ≥20 handler; antal handler, ikke unikke wallets");
+    } else add("V16 købere ≥ sælgere (1h)", SKIP, "under 20 handler på 24h", "for lidt handel til at sige noget");
     add("V17 beskrivelse/socials/website", NA, "?", "");
     const age = pair.pairCreatedAt ? (Date.now() - pair.pairCreatedAt) / 3600000 : null;
     add("V10 alder ≤ 1 døgn", age == null ? NA : age > 24 ? YEL : GRN, age == null ? "?" : f1(age) + " t");
@@ -366,7 +370,8 @@ async function feeCheck(tr, best, rpcs, add, mint) {
 
 async function athRow(pair, poolIds, L, net = "solana") {
   const pf = L.pump;
-  if (pf && pf.ath_market_cap && pf.usd_market_cap) return { ath: pf.ath_market_cap, now: pf.usd_market_cap };
+  // pump.fun's ATH is garbage on some old coins (Fartcoin: $428B); a 1000× drop is not a real reading
+  if (pf && pf.ath_market_cap && pf.usd_market_cap && pf.ath_market_cap <= 1000 * pf.usd_market_cap) return { ath: pf.ath_market_cap, now: pf.usd_market_cap };
   // fallback: highest daily USD price across the token's pools × current supply factor
   const mc = pair.marketCap || pair.fdv, price = Number(pair.priceUsd);
   if (!mc || !price) return null;
@@ -379,7 +384,8 @@ async function athRow(pair, poolIds, L, net = "solana") {
       hi = Math.max(hi, ...d.map(x => x[2]).filter(h => !med || h <= 50 * med));
     } catch {}
   }
-  return hi ? { ath: Math.max(hi * mc / price, mc), now: mc } : null;
+  const ath = Math.max(hi * mc / price, mc);
+  return hi && ath <= 1000 * mc ? { ath, now: mc } : null;
 }
 
 // GeckoTerminal prices a pool's candles in its base token; a pool where our coin is the quote side shows the other coin's price
@@ -432,7 +438,7 @@ async function evmChecks(addr, c, add) {
   add("V14 top 10 holders ≤ 30 %", top10 > 30 ? RED : GRN, f1(top10) + " %", "ekskl. pools, lockers og kontrakter (GoPlus)");
   const cl = largestEqualCluster(hs.map(h => Number(h.percent) * 100).filter(p => p >= 0.3));
   add("V2 ens holder-balancer (bundle)", bundleLevel(cl),
-    cl.length ? `${cl.length} wallets ~${cl[0].toFixed(2)} %` : "ingen", "rødt: ≥4 ens på ≥1,3 % eller ≥6 ens");
+    cl.length >= 2 ? `${cl.length} wallets ~${cl[0].toFixed(2)} %` : "ingen", "rødt: ≥4 ens på ≥1,3 % eller ≥6 ens");
   const lp = gp.lp_holders || [];
   const locked = lp.filter(h => Number(h.is_locked) || DEAD.test(h.address)).reduce((s, h) => s + Number(h.percent) * 100, 0);
   add("LP låst/brændt", !lp.length ? YEL : locked >= 90 ? GRN : locked >= 50 ? YEL : RED, lp.length ? f1(locked) + " %" : "ingen LP-data",
