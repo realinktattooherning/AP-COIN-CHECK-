@@ -26,7 +26,7 @@ const JITO = new Set([
   "DfXygSm4jCyNCybVYYK6DwvWqjKee8pbDmJGcLWNDXjh", "ADuUkR4vqLUMWXxW9gh6D6L8pMSawimctcNZ5pGwDcEt",
   "DttWaMuVvTiduZRnguLF7jNxTgiMBZ1hyAumKUiL2KRL", "3AVi9Tg9Uo68tJfuvoKvqKNWKkC5wPdSSdeBnizKZ6jT",
 ]);
-const FEE_SAMPLE = 30;
+const FEE_SAMPLE = 60;
 const PUBLIC_RPCS = ["https://solana-rpc.publicnode.com", "https://api.mainnet-beta.solana.com"];
 const MANUAL = [
   "V7/V13 hype + sentiment fra holders på X (link ovenfor)",
@@ -44,7 +44,14 @@ const store = {
 };
 
 let gtNext = 0;
-async function req(url, body, tries = 6) {
+const getCache = new Map();
+// identical GETs within one check share one request (ATH and V5 both read the day candles)
+function req(url, body, tries = 6) {
+  if (body) return reqRaw(url, body, tries);
+  if (!getCache.has(url)) getCache.set(url, reqRaw(url, null, tries).catch(e => { getCache.delete(url); throw e; }));
+  return getCache.get(url);
+}
+async function reqRaw(url, body, tries = 6) {
   for (let a = 0; a < tries; a++) {
     if (url.startsWith("https://api.geckoterminal.com")) {
       // space GeckoTerminal calls out; bursts trip its rate limit
@@ -81,7 +88,12 @@ function bestPair(dex, addr) {
   // the tokens endpoint also lists pairs where the coin is the quote side
   const own = all.filter(p => ((p.baseToken || {}).address || "").toLowerCase() === addr.toLowerCase());
   const pairs = own.length ? own : all;
-  return pairs.reduce((b, p) => (((p.liquidity || {}).usd || 0) > ((b.liquidity || {}).usd || -1) ? p : b), {});
+  const liq = p => (p.liquidity || {}).usd || 0, tx = p => { const t = (p.txns || {}).h24 || {}; return (t.buys || 0) + (t.sells || 0); };
+  // a real pool has ≥ $1K liquidity; when none does (bonding curve, or a coin paired with a token DexScreener
+  // cannot price), the pool with the most trades is the coin — never a $2 dust pool that happens to have a USD value
+  const real = pairs.filter(p => liq(p) >= 1000);
+  if (real.length) return real.reduce((b, p) => (liq(p) > liq(b) ? p : b));
+  return pairs.reduce((b, p) => (tx(p) > tx(b) ? p : b), pairs[0] || {});
 }
 
 function holdersExPools(rc) {
@@ -146,10 +158,12 @@ function baseChecks(rc, pair, add, chain = "solana") {
   if (pair.pairAddress) {
     const dexId = pair.dexId || "?";
     if (chain === "solana") add("V4 graduated", dexId !== "pumpfun" ? GRN : RED, dexId, "pumpfun = stadig på bonding curve");
-    add("V4 market cap ≥ $50-60K", mc == null ? NA : mc < 50000 ? RED : GRN, fmt(mc), "sweet spot $50K-200K");
+    // the main pool can trade against a token with no USD price (e.g. another memecoin): then MC/volume/liquidity are unknown
+    const noUsd = mc == null ? `ingen dollarpris: hovedpoolen handler mod ${(pair.quoteToken || {}).symbol || "?"}` : "";
+    add("V4 market cap ≥ $50-60K", mc == null ? NA : mc < 50000 ? RED : GRN, fmt(mc), noUsd || "sweet spot $50K-200K");
     // the reel's case was MC 18× volume; a few percent either way is noise in both numbers
     add("V15 market cap ≤ 24h-volumen", mc == null ? NA : mc > 1.5 * (vol.h24 || 0) ? RED : mc > (vol.h24 || 0) ? YEL : GRN,
-      `MC ${fmt(mc)} / vol ${fmt(vol.h24)}`, "rødt når MC er over 1,5× volumen");
+      `MC ${fmt(mc)} / vol ${fmt(vol.h24)}`, noUsd || "rødt når MC er over 1,5× volumen");
     const h1 = txns.h1 || {}, h24 = txns.h24 || {};
     const b1 = h1.buys || 0, s1 = h1.sells || 0;
     // reel case: 20 buyers vs 35 sellers (1.75×); a few more sells than buys in one hour is normal profit-taking
@@ -162,7 +176,7 @@ function baseChecks(rc, pair, add, chain = "solana") {
     const liq = (pair.liquidity || {}).usd, ratio = liq && mc ? liq / mc * 100 : null;
     if (ratio == null && dexId === "pumpfun") add("Likviditet ift. MC", SKIP, "bonding curve, ingen pool endnu", "V4 graduated dækker det");
     else add("Likviditet ift. MC", ratio == null ? NA : ratio < 5 ? RED : ratio < 10 ? YEL : GRN,
-      ratio == null ? fmt(liq) : `${fmt(liq)} (${f1(ratio)} % af MC)`);
+      ratio == null ? fmt(liq) : `${fmt(liq)} (${f1(ratio)} % af MC)`, ratio == null ? noUsd : "");
     const pc = pair.priceChange || {};
     add("V9 momentum (info)", NA, `pris 5m ${pc.m5 ?? "?"}% · 1h ${pc.h1 ?? "?"}% · 24h ${pc.h24 ?? "?"}% · vol 5m ${fmt(vol.m5)}`);
   } else {
@@ -291,44 +305,63 @@ async function tradeChecks(best, holders, add, net = "solana") {
   return tr;
 }
 
-async function feeCheck(tr, best, rpcs, add) {
+async function txFee(t, rpcs) {
+  const body = { jsonrpc: "2.0", id: 1, method: "getTransaction",
+    params: [t.tx_hash, { encoding: "jsonParsed", maxSupportedTransactionVersion: 1 }] };
+  let res = null, err = "";
+  // own key first, then keyless public RPCs; one dead endpoint must not leave V5 unscanned
+  for (const u of rpcs) {
+    try { res = (await req(u, body, 2)).result; } catch (e) { err = e.message; }
+    if (res) break;
+  }
+  if (!res) return { err };
+  const meta = res.meta, msg = res.transaction.message;
+  const ins = [...(msg.instructions || []), ...(meta.innerInstructions || []).flatMap(g => g.instructions)];
+  const tips = ins.filter(i => i.parsed && typeof i.parsed === "object" && i.parsed.type === "transfer" && JITO.has(i.parsed.info.destination))
+    .reduce((s, i) => s + (i.parsed.info.lamports || 0), 0);
+  return { fee: (meta.fee || 0) + tips };
+}
+
+async function lifetimeVolume(mint) {
+  // USD volume since launch: daily candles summed over the coin's own pools (launch pool first)
+  try {
+    const pools = ownPools(await req(`https://api.geckoterminal.com/api/v2/networks/solana/tokens/${mint}/pools?page=1`), mint)
+      .sort((a, b) => (a.relationships.dex.data.id !== "pump-fun") - (b.relationships.dex.data.id !== "pump-fun")
+        || Number(b.attributes.reserve_in_usd || 0) - Number(a.attributes.reserve_in_usd || 0));
+    let total = 0, ok = false;
+    for (const p of pools.slice(0, 4)) {
+      try { total += (await req(`${GT}${p.attributes.address}/ohlcv/day?limit=1000`)).data.attributes.ohlcv_list.reduce((s, x) => s + x[5], 0); ok = true; } catch {}
+    }
+    return ok ? total : null;
+  } catch { return null; }
+}
+
+// Total fees over the coin's life (the "Total fees" Axiom/pump.fun show): fee per trade from trades spread over the
+// recent history × 24h trade count, scaled by volume since launch / 24h volume (24h alone undercounts older coins).
+// Per trade, not per $, so a dead coin's dust trades cannot inflate it.
+async function feeCheck(tr, best, rpcs, add, mint) {
   if (!tr.length) { add("V5 total fees ≥ 2 SOL", NA, "ingen handler"); return; }
+  const step = Math.max(1, Math.floor(tr.length / FEE_SAMPLE));
+  const sample = tr.filter((_, i) => i % step === 0).slice(0, FEE_SAMPLE);
   const fees = [];
-  let lastErr = "", done = 0;
-  const one = async t => {
-    const body = { jsonrpc: "2.0", id: 1, method: "getTransaction",
-      params: [t.tx_hash, { encoding: "jsonParsed", maxSupportedTransactionVersion: 1 }] };
-    let res = null;
-    // own key first, then keyless public RPCs; one dead endpoint must not leave V5 unscanned
-    for (const u of rpcs) {
-      try { res = (await req(u, body, 2)).result; } catch (e) { lastErr = e.message; }
-      if (res) break;
-    }
-    if (res) {
-      const meta = res.meta, msg = res.transaction.message;
-      const ins = [...(msg.instructions || []), ...(meta.innerInstructions || []).flatMap(g => g.instructions)];
-      const tips = ins.filter(i => i.parsed && typeof i.parsed === "object" && i.parsed.type === "transfer" && JITO.has(i.parsed.info.destination))
-        .reduce((s, i) => s + (i.parsed.info.lamports || 0), 0);
-      fees.push((meta.fee || 0) + tips);
-    }
-    done++;
-  };
-  // 5 at a time: fast on a Helius key, still gentle enough for the public RPC
-  const sample = tr.slice(-FEE_SAMPLE);
-  for (let i = 0; i < sample.length; i += 5) await Promise.all(sample.slice(i, i + 5).map(one));
+  let lastErr = "";
+  for (let i = 0; i < sample.length; i += 5) {
+    for (const r of await Promise.all(sample.slice(i, i + 5).map(t => txFee(t, rpcs)))) r.fee != null ? fees.push(r.fee) : (lastErr = r.err);
+  }
   if (!fees.length) {
-    add("V5 total fees ≥ 2 SOL", NA, "Solana RPC svarede ikke" + (lastErr ? ` (${lastErr})` : ""),
-      "alle RPC'er afviste — prøv igen om et minut");
+    add("V5 total fees ≥ 2 SOL", NA, "Solana RPC svarede ikke" + (lastErr ? ` (${lastErr})` : ""), "alle RPC'er afviste — prøv igen om et minut");
     return;
   }
   const t24 = (best.txns || {}).h24 || {};
   const tx24 = (t24.buys || 0) + (t24.sells || 0);
   const avg = fees.reduce((s, f) => s + f, 0) / fees.length / 1e9;
-  const est = avg * tx24, vol24 = (best.volume || {}).h24 || 0;
-  const perK = vol24 ? est / (vol24 / 1000) : 0;
+  const est24 = avg * tx24, vol24 = (best.volume || {}).h24 || 0;
+  const life = await lifetimeVolume(mint);
+  const scale = life && vol24 ? Math.max(1, life / vol24) : 1;
+  const est = est24 * scale;
   add("V5 total fees ≥ 2 SOL", est < 1 ? RED : est < 2 ? YEL : GRN,
-    `~${est.toFixed(2)} SOL på 24h (${(avg * 1000).toFixed(2)} mSOL/handel × ${tx24} handler, ${perK.toFixed(3)} SOL pr. $1K vol)`,
-    `estimat: gas + Jito-tips fra ${fees.length} stikprøver; minimumsværdi`);
+    `~${est.toFixed(2)} SOL i alt (~${est24.toFixed(2)} SOL sidste 24h: ${(avg * 1000).toFixed(2)} mSOL × ${tx24} handler` + (scale > 1.05 ? `; ${scale.toFixed(1)}× volumen siden launch)` : ")"),
+    `estimat: gas + Jito-tips fra ${fees.length} handler spredt over de seneste ${tr.length}`);
 }
 
 async function athRow(pair, poolIds, L, net = "solana") {
@@ -444,6 +477,7 @@ function score(rows) {
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
 async function run(addr) {
+  getCache.clear();
   $("go").disabled = true; $("log").textContent = ""; $("out").hidden = true;
   const rpcIn = $("rpc").value.trim();
   store.set("rpc", rpcIn);
@@ -489,7 +523,7 @@ async function run(addr) {
         const lpP = launchPool(addr, dex, pair);
         await Promise.all([
           lpP.then(lp => candleChecks(lp.pool, add, "solana", pair)).then(() => { pending.delete("V1/V6 launch-candles"); show(); }),
-          tradeChecks(pair, owners, add).then(tr => { pending.delete("V3 handler"); show(); return feeCheck(tr, pair, rpc, add); })
+          tradeChecks(pair, owners, add).then(tr => { pending.delete("V3 handler"); show(); return feeCheck(tr, pair, rpc, add, addr); })
             .then(() => { pending.delete("V5 fees"); show(); }),
           links(addr, pair).then(l => { L = l; setV17(); pending.delete("V17 socials"); show(); return lpP; })
             .then(lp => athRow(pair, lp.ids.length ? lp.ids : [pair.pairAddress], L)).then(a => { athFrom(a, rows); pending.delete("V9 ATH"); show(); }),
