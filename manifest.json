@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "AP Coin Check",
+  "version": "1.0",
+  "description": "Rug-pull-tjek for Solana memecoins. Kun læsning, rører aldrig en wallet.",
+  "action": { "default_popup": "index.html", "default_title": "Tjek coin" },
+  "permissions": ["activeTab", "storage", "declarativeNetRequest"],
+  "host_permissions": [
+    "https://api.dexscreener.com/*",
+    "https://api.rugcheck.xyz/*",
+    "https://api.geckoterminal.com/*",
+    "https://frontend-api-v3.pump.fun/*",
+    "https://solana-rpc.publicnode.com/*",
+    "https://api.mainnet-beta.solana.com/*",
+    "https://*.helius-rpc.com/*"
+  ],
+  "declarative_net_request": {
+    "rule_resources": [{ "id": "pumpfun", "enabled": true, "path": "rules.json" }]
+  }
+}

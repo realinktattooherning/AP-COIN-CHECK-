@@ -1,6 +1,8 @@
 # CLAUDE.md
 
-Svar på dansk. `index.html` er brugerens coin-tjekker, hostet på GitHub Pages fra `main`. Push til `main` = live efter ~1 min.
+Svar på dansk. Repoet er både websiden (GitHub Pages fra `main`, live ~1 min efter push) og Chrome-udvidelsen
+(`manifest.json`, popup = `index.html`). Al logik ligger i `checker.js`. Ingen inline-scripts i `index.html` (udvidelser tillader dem ikke).
+Ny API-host → tilføj den under `host_permissions` i `manifest.json`, og bump `version`.
 
 - Reglerne kommer fra `memecoin/rugpull-checklist.md` i `realinktattooherning/realink-chatbot`, og `index.html` skal give
   samme resultat som `memecoin/tools/coin.py` + `deep.py` dér (samme tærskler, samme score). Ændres én, ændres begge.
