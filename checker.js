@@ -101,6 +101,13 @@ function largestEqualCluster(pcts) {
   return best;
 }
 
+// bundles buy big, near-identical bags (reel: 1.48/1.47/1.47/1.47 %); around 1 % a coin with thousands of holders
+// naturally has several near-equal wallets, so small clusters only warn
+function bundleLevel(cl) {
+  const n = cl.length, p = n ? cl[0] : 0;
+  return (n >= 4 && p >= 1.3) || n >= 6 ? RED : n >= 4 || (n === 3 && p >= 1.3) ? YEL : GRN;
+}
+
 function baseChecks(rc, pair, add, chain = "solana") {
   const mc = pair.marketCap || pair.fdv;
   const vol = pair.volume || {}, txns = pair.txns || {};
@@ -110,11 +117,14 @@ function baseChecks(rc, pair, add, chain = "solana") {
     const top10 = top.slice(0, 10).reduce((s, h) => s + (h.pct || 0), 0);
     add("V14 top 10 holders ≤ 30 %", top10 > 30 ? RED : GRN, f1(top10) + " %", "ekskl. pools/kendte konti");
     const cl = largestEqualCluster(top.slice(0, 20).map(h => h.pct || 0).filter(p => p >= 0.3));
-    add("V2 ens holder-balancer (bundle)", cl.length >= 4 ? RED : cl.length === 3 ? YEL : GRN,
-      cl.length ? `${cl.length} wallets ~${cl[0].toFixed(2)} %` : "ingen", "≥4 inden for ~2 % af hinanden = rødt");
-    const ins = rc.graphInsidersDetected || 0, flagged = top.filter(h => h.insider).length;
-    add("V8 insider-wallets", ins >= 5 || flagged >= 3 ? RED : ins || flagged ? YEL : GRN,
-      `${ins} insiders i graf, ${flagged} top-holders flaget`);
+    add("V2 ens holder-balancer (bundle)", bundleLevel(cl),
+      cl.length ? `${cl.length} wallets ~${cl[0].toFixed(2)} %` : "ingen", "rødt: ≥4 ens på ≥1,3 % eller ≥6 ens");
+    // share of supply held by Rugcheck's linked-wallet networks; the raw wallet count grows with any big holder base
+    const supply0 = (rc.token || {}).supply || 0, nets = rc.insiderNetworks || [];
+    const insPct = supply0 ? nets.reduce((s, n) => s + (n.tokenAmount || 0), 0) / supply0 * 100 : 0;
+    const flagged = top.filter(h => h.insider).length;
+    add("V8 insider-wallets", insPct >= 20 || flagged >= 3 ? RED : insPct >= 8 || flagged ? YEL : GRN,
+      `${f1(insPct)} % af supply i ${nets.length} netværk, ${flagged} top-holders flaget`, "rødt ≥20 % af supply, gult ≥8 %");
     add("Mint authority revoked", rc.mintAuthority ? RED : GRN, rc.mintAuthority ? "aktiv" : "revoked");
     add("Freeze authority revoked", rc.freezeAuthority ? RED : GRN, rc.freezeAuthority ? "aktiv" : "revoked");
     const locked = Math.max(0, ...(rc.markets || []).map(m => (m.lp || {}).lpLockedPct || 0));
@@ -136,7 +146,9 @@ function baseChecks(rc, pair, add, chain = "solana") {
     const dexId = pair.dexId || "?";
     if (chain === "solana") add("V4 graduated", dexId !== "pumpfun" ? GRN : RED, dexId, "pumpfun = stadig på bonding curve");
     add("V4 market cap ≥ $50-60K", mc == null ? NA : mc < 50000 ? RED : GRN, fmt(mc), "sweet spot $50K-200K");
-    add("V15 market cap ≤ 24h-volumen", mc == null ? NA : mc > (vol.h24 || 0) ? RED : GRN, `MC ${fmt(mc)} / vol ${fmt(vol.h24)}`);
+    // the reel's case was MC 18× volume; a few percent either way is noise in both numbers
+    add("V15 market cap ≤ 24h-volumen", mc == null ? NA : mc > 1.5 * (vol.h24 || 0) ? RED : mc > (vol.h24 || 0) ? YEL : GRN,
+      `MC ${fmt(mc)} / vol ${fmt(vol.h24)}`, "rødt når MC er over 1,5× volumen");
     const h1 = txns.h1 || {}, h24 = txns.h24 || {};
     const b1 = h1.buys || 0, s1 = h1.sells || 0;
     add("V16 købere ≥ sælgere (1h)", s1 > b1 * 1.1 ? RED : s1 > b1 ? YEL : GRN,
@@ -366,8 +378,8 @@ async function evmChecks(addr, c, add) {
   const top10 = hs.slice(0, 10).reduce((s, h) => s + Number(h.percent) * 100, 0);
   add("V14 top 10 holders ≤ 30 %", top10 > 30 ? RED : GRN, f1(top10) + " %", "ekskl. pools, lockers og kontrakter (GoPlus)");
   const cl = largestEqualCluster(hs.map(h => Number(h.percent) * 100).filter(p => p >= 0.3));
-  add("V2 ens holder-balancer (bundle)", cl.length >= 4 ? RED : cl.length === 3 ? YEL : GRN,
-    cl.length ? `${cl.length} wallets ~${cl[0].toFixed(2)} %` : "ingen", "≥4 inden for ~2 % af hinanden = rødt");
+  add("V2 ens holder-balancer (bundle)", bundleLevel(cl),
+    cl.length ? `${cl.length} wallets ~${cl[0].toFixed(2)} %` : "ingen", "rødt: ≥4 ens på ≥1,3 % eller ≥6 ens");
   const lp = gp.lp_holders || [];
   const locked = lp.filter(h => Number(h.is_locked) || DEAD.test(h.address)).reduce((s, h) => s + Number(h.percent) * 100, 0);
   add("LP låst/brændt", !lp.length ? YEL : locked >= 90 ? GRN : locked >= 50 ? YEL : RED, lp.length ? f1(locked) + " %" : "ingen LP-data",
@@ -394,7 +406,8 @@ const SCALE = "1-3 = køb ikke · 4-6 = vent/forsigtig · 7-10 = køb-kandidat (
 function score(rows) {
   const hard = rows.filter(r => r.s === RED && HARD_NO.some(h => r.rule.startsWith(h)));
   const soft = rows.filter(r => r.s === RED && !hard.includes(r));
-  const yel = rows.filter(r => r.s === YEL);
+  // "(info)" rows describe the chart; they never move the score
+  const yel = rows.filter(r => r.s === YEL && !r.rule.includes("(info)"));
   let risk = Math.round(3 + 3 * hard.length + 1.5 * soft.length + 0.5 * yel.length);
   risk = Math.max(hard.length ? 8 : 1, Math.min(10, risk));
   let buy = Math.max(1, Math.min(10, 10 - risk + (!hard.length && !soft.length ? 1 : 0)));
