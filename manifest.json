@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "AP Coin Check",
-  "version": "2.0",
+  "version": "2.1",
   "description": "Rug-pull-tjek for Solana memecoins. Kun læsning, rører aldrig en wallet.",
   "action": {
     "default_popup": "index.html",
@@ -19,6 +19,7 @@
     "https://frontend-api-v3.pump.fun/*",
     "https://solana-rpc.publicnode.com/*",
     "https://api.mainnet-beta.solana.com/*",
+    "https://solana-rpc.web.helium.io/*",
     "https://*.helius-rpc.com/*",
     "https://api.gopluslabs.io/*",
     "https://api.honeypot.is/*",

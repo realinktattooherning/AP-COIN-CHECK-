@@ -28,12 +28,16 @@ const JITO = new Set([
 ]);
 const FEE_SAMPLE = 60;
 const PUBLIC_RPCS = ["https://solana-rpc.publicnode.com", "https://api.mainnet-beta.solana.com"];
+// wallet birth needs full signature history: PublicNode keeps only ~20 h (every wallet would look new) and
+// api.mainnet-beta refuses browsers; Helium's public RPC has full history and allows browsers
+const HISTORY_RPCS = ["https://solana-rpc.web.helium.io", "https://api.mainnet-beta.solana.com"];
+const DAY = 86400;
 const MANUAL = [
   "V7/V13 hype + sentiment fra holders på X (link ovenfor)",
   "V11 forstår du memet",
   "V12 dev/team kan findes",
 ];
-const HARD_NO = ["V4", "V5", "V14", "V15", "V16", "V17", "Mint", "Freeze", "Rugcheck: rugged", "Honeypot", "Salgs-skat"];
+const HARD_NO = ["V4", "V5", "V14", "V15", "V16", "V17", "V18", "Mint", "Freeze", "Rugcheck: rugged", "Honeypot", "Salgs-skat"];
 
 const $ = id => document.getElementById(id);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -274,6 +278,100 @@ async function links(mint, pair, rc) {
   if (rc && rc.fileMeta) { L.description = L.description || String(rc.fileMeta.description || "").trim(); L.sources.push("Rugcheck"); }
   L.twitterIsPost = /\/status\/|\/search/.test(L.twitter || "");
   return L;
+}
+
+// Is the X account the coin's own? Copy coins link a famous account (Ascent Lab → @MIT_CSAIL) to look legit
+function ownX(handle, name, symbol, website) {
+  const n = x => String(x || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const h = n(handle);
+  const words = new Set([...`${name} ${symbol}`.split(/[\s_\-.$]+/).map(n), n(name), n(symbol)]);
+  const m = /https?:\/\/(?:www\.)?([^/]+)/.exec(website || "");
+  if (m) { const parts = m[1].split("."); parts.pop(); words.add(n(parts[parts.length - 1])); }
+  return [...words].some(w => w.length >= 3 && (h.includes(w) || w.includes(h)));
+}
+function xHandle(url) {
+  const m = /(?:x|twitter)\.com\/([A-Za-z0-9_]+)/.exec(url || "");
+  return m && !["i", "intent", "search", "home", "hashtag"].includes(m[1].toLowerCase()) ? m[1] : null;
+}
+
+// Unix time of the wallet's first transaction; "active" with ≥1000 transactions (a trader, not a farmed wallet);
+// null if no full-history RPC answered
+async function walletBirth(owner, rpcs) {
+  for (const u of rpcs) {
+    try {
+      const r = await req(u, { jsonrpc: "2.0", id: 1, method: "getSignaturesForAddress", params: [owner, { limit: 1000 }] }, 2);
+      const sigs = r && r.result;
+      if (!sigs) continue;
+      if (sigs.length >= 1000) return "active";
+      return sigs.length ? sigs[sigs.length - 1].blockTime : null;
+    } catch {}
+  }
+  return null;
+}
+
+// V18: the dump bag hides in many mid-size wallets with random sizes (V2 sees no equal cluster) that were all created
+// in the same day or two, often months earlier (aged wallets bought or farmed in batches). Real holders' wallets are
+// born years apart. Rug Ascent Lab: 11 such wallets (11.7 %) sold in one block 75 min after launch.
+async function walletCheck(rc, launchMs, add, rpcs) {
+  const R = "V18 farmede wallets (oprettet samtidig)";
+  if (!rc) return add(R, NA, "Rugcheck mangler", "kræver holder-listen");
+  const top = holdersExPools(rc).slice(0, 20);
+  if (!top.length) return add(R, SKIP, "ingen holders ud over pools");
+  const births = [];
+  for (let i = 0; i < top.length; i += 5) births.push(...await Promise.all(top.slice(i, i + 5).map(h => walletBirth(h.owner, rpcs))));
+  const miss = births.filter(b => b == null).length;
+  if (miss > Math.floor(top.length / 4)) return add(R, NA, `${miss}/${top.length} wallets ikke slået op`, "RPC med fuld historik svarede ikke — prøv igen om et minut");
+  const born = births.map((b, i) => [b, top[i].pct || 0]).filter(([b]) => Number.isInteger(b));
+  const cut = (launchMs || 0) / 1000 - DAY;
+  // aged wallets (born before the launch day) bought in one batch are born within a day of each other; wallets made
+  // for the launch only count together if born within 10 min (bundler script), not like retail making new wallets
+  const clustered = new Set();
+  let largest = 0;
+  for (const [b] of born) {
+    const win = b < cut ? DAY : 600;
+    const group = born.map(([c], i) => (c - b >= 0 && c - b <= win && (c < cut) === (b < cut) ? i : -1)).filter(i => i >= 0);
+    largest = Math.max(largest, group.length);
+    if (group.length >= 3) group.forEach(i => clustered.add(i));
+  }
+  const pct = [...clustered].reduce((s, i) => s + born[i][1], 0);
+  const young = born.filter(([b]) => b >= cut);
+  add(R, clustered.size >= 6 && pct >= 5 ? RED : clustered.size >= 4 && pct >= 3 ? YEL : GRN,
+    `${clustered.size} af top ${top.length} oprettet i klynger (${f1(pct)} %), største klynge ${largest}; ${young.length} nye (≤1 døgn før launch, ${f1(young.reduce((s, [, p]) => s + p, 0))} %)`,
+    "rødt ≥6 wallets med ≥5 %: klynger af ≥3 oprettet samme døgn (ældre wallets) eller inden for 10 min (nye)");
+}
+
+// V19: a coin with the same name and ticker as a bigger coin that is older (or launched the same minute) is the copy
+async function copyCheck(mint, pair, rc, add) {
+  const R = "V19 kopi af anden coin (samme navn)";
+  const n = x => String(x || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const base = pair.baseToken || {}, meta = (rc || {}).tokenMeta || {};
+  const rawSym = base.symbol || meta.symbol, sym = n(rawSym), name = n(base.name || meta.name);
+  if (!sym || !(pair.marketCap || pair.fdv)) return add(R, SKIP, "navn eller MC ukendt");
+  let pairs;
+  try { pairs = (await req(`https://api.dexscreener.com/latest/dex/search?q=${encodeURIComponent(rawSym)}`)).pairs || []; }
+  catch (e) { return add(R, NA, "DexScreener-søgning fejlede: " + e.message); }
+  const others = new Map();
+  for (const p of pairs) {
+    const t = p.baseToken || {};
+    if (String(t.address).toLowerCase() === mint.toLowerCase() || n(t.symbol) !== sym || (name && n(t.name) !== name)) continue;
+    const liq = (p.liquidity || {}).usd || 0, pmc = p.marketCap || p.fdv || 0;
+    // dust/fake pools show absurd MC ($224M on $0 liquidity) or liquidity ≈ MC: only real pools count
+    if (liq < 10000 || (pmc && liq > 0.8 * pmc)) continue;
+    const o = others.get(t.address) || { liq: 0, vol: 0, mc: 0, created: Infinity, chain: p.chainId };
+    o.liq += liq; o.vol += (p.volume || {}).h24 || 0; o.mc = Math.max(o.mc, pmc);
+    o.created = Math.min(o.created, p.pairCreatedAt || Infinity);
+    others.set(t.address, o);
+  }
+  const liq0 = (pair.liquidity || {}).usd || 0, vol0 = (pair.volume || {}).h24 || 0, mine = pair.pairCreatedAt || Infinity;
+  // compare real money (liquidity, volume), not MC that a dust pool can fake
+  const list = [...others.values()];
+  const bigger = list.filter(o => o.liq >= 2 * Math.max(liq0, 1) && o.vol >= vol0);
+  const copy = bigger.filter(o => o.chain === (pair.chainId || "solana") && o.created <= mine + 600000);
+  const top = list.reduce((b, o) => (!b || o.liq > b.liq ? o : b), null);
+  add(R, copy.length ? RED : bigger.length ? YEL : GRN,
+    `${list.length} andre med samme navn/ticker` + (top ? `; største ${fmt(top.mc)} MC / ${fmt(top.liq)} likviditet på ${top.chain}` : "")
+      + (list.length && !bigger.length ? " — denne er den største" : ""),
+    "rødt: en ældre coin med samme navn på samme kæde har ≥2× likviditet og mere volumen (du køber kopien)");
 }
 
 async function launchPool(mint, dex, best) {
@@ -603,7 +701,11 @@ async function run(addr) {
       if (i17 < 0) return;
       const src = (L.sources || []).join(" + ");
       // reel rule: a hard no only when description, socials AND website are all missing
-      if (found.length) {
+      const handle = xHandle(L.twitter);
+      const tok = pair.baseToken || {}, meta = (rc || {}).tokenMeta || {};
+      if (found.length && handle && !L.twitterIsPost && !ownX(handle, tok.name || meta.name || "", tok.symbol || meta.symbol || "", L.website)) {
+        rows[i17] = { rule: rows[i17].rule, s: YEL, v: found.join(", "), n: `X-kontoen @${handle} ligner ikke coinens egen (navn/ticker indgår ikke) — lånt konto?` };
+      } else if (found.length) {
         rows[i17] = { rule: rows[i17].rule, s: !L.twitterIsPost || found.length > 1 ? GRN : YEL, v: found.join(", "),
           n: L.twitterIsPost ? "X-linket er et opslag/søgning, ikke en projektkonto" : src };
       } else if (L.description) {
@@ -621,12 +723,19 @@ async function run(addr) {
 
     if (chain === "solana") {
       baseChecks(rc, pair, add);
-      pending = new Set(pair.pairAddress ? ["V1/V6 launch-candles", "V3 handler", "V5 fees", "V17 socials", "V9 ATH"] : []);
+      pending = new Set(["V18 wallets", ...(pair.pairAddress ? ["V19 kopi", "V1/V6 launch-candles", "V3 handler", "V5 fees", "V17 socials", "V9 ATH"] : [])]);
       show();
+      const created = ((dex && dex.pairs) || []).map(p => p.pairCreatedAt).filter(Boolean);
+      const launchMs = created.length ? Math.min(...created) : pair.pairCreatedAt;
+      const histRpcs = [...new Set([rpc[0], ...HISTORY_RPCS].filter(u => u && !u.includes("publicnode")))];
+      const v18 = walletCheck(rc, launchMs, add, histRpcs).then(() => { pending.delete("V18 wallets"); show(); });
+      if (!pair.pairAddress) await v18;
       if (pair.pairAddress) {
         const owners = new Set(((rc || {}).topHolders || []).map(h => String(h.owner).toLowerCase()));
         const lpP = launchPool(addr, dex, pair);
         await Promise.all([
+          v18,
+          copyCheck(addr, pair, rc, add).then(() => { pending.delete("V19 kopi"); show(); }),
           lpP.then(lp => candleChecks(lp.pool, add, "solana", pair)).then(() => { pending.delete("V1/V6 launch-candles"); show(); }),
           tradeChecks(pair, owners, add).then(tr => { pending.delete("V3 handler"); show(); return feeCheck(tr, pair, rpc, add, addr); })
             .then(() => { pending.delete("V5 fees"); show(); }),
@@ -706,7 +815,7 @@ function render(addr, name, pair, L, rows, pending = [], chain = "solana") {
       <ul>${missing.map(r => `<li>⬜ ${esc(r.rule)}: ${esc(r.v)}${r.n ? ` (${esc(r.n)})` : ""}</li>`).join("")}</ul></div>` : ""}
     <ul>${reasons.map(r => `<li>${esc(r)}</li>`).join("")}</ul>
     ${chain !== "solana" && pair.pairAddress ? `<p class="sub">Kæde: ${esc((EVM[chain] || {}).name || chain)}. Solana-reglerne V4 graduated (pump.fun), V5 fees i SOL og V8 insider-graf (Rugcheck) findes ikke her og er sprunget over. I stedet tjekkes honeypot, skat og ejer-magt.</p>` : ""}
-    <p class="sub">Automatisk: ${reds} røde, ${yels} gule, ${grns} grønne. Hvert 🟥 på V4, V5, V14, V15, V16, V17 er et hårdt nej. Reglerne er lavet til nye memecoins ($50K–få $M); på store etablerede coins giver V14/V15 falske røde.</p>
+    <p class="sub">Automatisk: ${reds} røde, ${yels} gule, ${grns} grønne. Hvert 🟥 på V4, V5, V14, V15, V16, V17, V18 er et hårdt nej. Reglerne er lavet til nye memecoins ($50K–få $M); på store etablerede coins giver V14/V15 falske røde.</p>
     <div class="tbl"><table>
       <thead><tr><th>Tjek</th><th></th><th>Værdi</th><th>Note</th></tr></thead>
       <tbody>${rows.map(r => `<tr><td>${esc(r.rule)}</td><td><span class="pill p-${r.s}">${ICON[r.s]}</span></td><td class="v">${esc(r.v)}</td><td class="n">${esc(r.n)}</td></tr>`).join("")}</tbody>
