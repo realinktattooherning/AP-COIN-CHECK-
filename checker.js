@@ -192,8 +192,10 @@ function baseChecks(rc, pair, add, chain = "solana") {
       // compare at the shown precision: a launchpad's fixed 5.0 % creator allocation is a warning, not over the line
       add("Dev/creator andel", share >= 5.05 ? RED : share > 1 ? YEL : GRN, f1(share) + " %");
     }
-    const danger = (rc.risks || []).filter(r => r.level === "danger").map(r => r.name);
-    const warn = (rc.risks || []).filter(r => r.level === "warn").map(r => r.name);
+    // facts that have their own row (LP, mint, freeze) must not count twice
+    const own = /LP Unlocked|Mint Authority|Freeze Authority/i;
+    const danger = (rc.risks || []).filter(r => r.level === "danger" && !own.test(r.name || "")).map(r => r.name);
+    const warn = (rc.risks || []).filter(r => r.level === "warn" && !own.test(r.name || "")).map(r => r.name);
     add("Rugcheck risici", danger.length ? RED : warn.length ? YEL : GRN, [...danger, ...warn].join(", ") || "ingen",
       "score " + (rc.score_normalised ?? rc.score));
   } else if (chain === "solana") {
@@ -229,6 +231,10 @@ function baseChecks(rc, pair, add, chain = "solana") {
       ratio == null ? fmt(liq) : `${fmt(liq)} (${f1(ratio)} % af MC)`, ratio == null ? noUsd : "");
     const pc = pair.priceChange || {};
     add("V9 momentum (info)", NA, `pris 5m ${pc.m5 ?? "?"}% · 1h ${pc.h1 ?? "?"}% · 24h ${pc.h24 ?? "?"}% · vol 5m ${fmt(vol.m5)}`);
+    // paper trading 2026-10-06: 6 of 7 live coins that had fallen ≥30 % in the last hour lost ≥40 % more within 4 h
+    if (pc.h1 == null) add("V20 falder ikke kraftigt nu (1h)", SKIP, "ingen 1h-prisændring");
+    else add("V20 falder ikke kraftigt nu (1h)", Number(pc.h1) <= -30 ? RED : GRN, `1h ${pc.h1}%`,
+      "rødt ved ≥30 % fald den sidste time: vent til faldet stopper (faldende kniv)");
   } else {
     add("DexScreener-data", NA, "mangler", "V4, V9, V10, V15, V16, V17 kunne ikke tjekkes");
   }
