@@ -231,6 +231,11 @@ function baseChecks(rc, pair, add, chain = "solana") {
       ratio == null ? fmt(liq) : `${fmt(liq)} (${f1(ratio)} % af MC)`, ratio == null ? noUsd : "");
     const pc = pair.priceChange || {};
     add("V9 momentum (info)", NA, `pris 5m ${pc.m5 ?? "?"}% · 1h ${pc.h1 ?? "?"}% · 24h ${pc.h24 ?? "?"}% · vol 5m ${fmt(vol.m5)}`);
+    // reel V9: already pumped vertically = top risk. Paper trading 2026-10-08: 81 % of 53 coins up ≥100 % in 24 h died
+    // within 2 days vs 38 % of the rest; all three 7/10 buys that had pumped 164-1293 % lost 35-91 %
+    if (pc.h24 == null) add("V9b ikke allerede pumpet (24h)", SKIP, "ingen 24h-prisændring");
+    else add("V9b ikke allerede pumpet (24h)", Number(pc.h24) >= 100 ? YEL : GRN, `24h ${pc.h24}%`,
+      "gult ved ≥+100 % på 24 t: top-risiko, de fleste bløder ud bagefter");
     // paper trading 2026-10-06: 6 of 7 live coins that had fallen ≥30 % in the last hour lost ≥40 % more within 4 h
     if (pc.h1 == null) add("V20 falder ikke kraftigt nu (1h)", SKIP, "ingen 1h-prisændring");
     else add("V20 falder ikke kraftigt nu (1h)", Number(pc.h1) <= -30 ? RED : GRN, `1h ${pc.h1}%`,
