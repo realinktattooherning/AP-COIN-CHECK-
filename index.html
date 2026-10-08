@@ -1,94 +1,285 @@
 <!doctype html>
-<html lang="da">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Coin-tjek</title>
+<title>DK Rug Scan — scan it before you ape it</title>
+<meta name="description" content="Free rug-pull scanner for memecoins. Paste a contract address and get 24 checks on holders, liquidity, fees, bundles and copycats, scored 1–10. Runs in your browser, never touches your wallet.">
+<meta name="theme-color" content="#0A0F16">
+<link rel="icon" href="assets/icon-32.png" sizes="32x32">
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="DK Rug Scan — scan it before you ape it">
+<meta property="og:description" content="24 automated rug-pull checks, one score from 1 to 10. Free, in your browser, never touches your wallet.">
+<meta property="og:image" content="https://dkrugscan.netlify.app/assets/og.png">
+<meta property="og:url" content="https://dkrugscan.netlify.app/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://dkrugscan.netlify.app/assets/og.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<style>
-/* Layout: one narrow column — address bar, verdict block, then the rule table. Reads top-down like a scanner report. */
-:root {
-  --bg: #f3f4f1; --panel: #ffffff; --fg: #1b1f1c; --muted: #5d665f; --line: #d9ddd6;
-  --accent: #2f6b4f; --red: #b3261e; --red-bg: #fbe9e7; --yel: #8a6100; --yel-bg: #fdf3d8;
-  --grn: #2f6b4f; --grn-bg: #e4f1e8; --na: #55606b; --na-bg: #e9ecef;
-  --display: "Familjen Grotesk", "Helvetica Neue", Arial, sans-serif;
-  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
-  color-scheme: light;
-}
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
-  --bg: #121513; --panel: #1a1e1b; --fg: #e6eae5; --muted: #98a39a; --line: #2c322e;
-  --accent: #7cc49e; --red: #ff8a80; --red-bg: #3a1d1b; --yel: #f2c14e; --yel-bg: #352b12;
-  --grn: #7cc49e; --grn-bg: #18301f; --na: #aab4bd; --na-bg: #262b30; color-scheme: dark } }
-:root[data-theme="dark"] {
-  --bg: #121513; --panel: #1a1e1b; --fg: #e6eae5; --muted: #98a39a; --line: #2c322e;
-  --accent: #7cc49e; --red: #ff8a80; --red-bg: #3a1d1b; --yel: #f2c14e; --yel-bg: #352b12;
-  --grn: #7cc49e; --grn-bg: #18301f; --na: #aab4bd; --na-bg: #262b30; color-scheme: dark }
-* { box-sizing: border-box }
-[hidden] { display: none !important }
-body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.5 var(--display) }
-main { max-width: 980px; margin: 0 auto; padding-inline: 16px; padding-block: 24px 64px; display: grid; gap: 20px }
-h1 { font-size: 1.6rem; margin: 0; letter-spacing: -0.01em }
-h2 { font-size: 1.15rem; margin: 0; text-wrap: balance }
-.sub { color: var(--muted); margin: 4px 0 0; font-size: .9rem }
-form { display: flex; flex-wrap: wrap; gap: 8px }
-input { flex: 1 1 320px; min-width: 0; font: 14px var(--mono); padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); color: var(--fg) }
-button { font: 600 14px var(--display); padding: 10px 16px; border-radius: 6px; border: 1px solid var(--accent); background: var(--accent); color: var(--bg); cursor: pointer }
-button.ghost { background: transparent; color: var(--accent) }
-button:disabled { opacity: .5; cursor: progress }
-:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
-details { font-size: .9rem; color: var(--muted) }
-details input { flex-basis: 100% }
-.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 16px; display: grid; gap: 12px; min-width: 0 }
-.verdict { display: flex; flex-wrap: wrap; gap: 12px; align-items: baseline }
-.score { font: 600 1.4rem var(--mono); font-variant-numeric: tabular-nums; padding: 4px 12px; border-radius: 6px }
-.warn { border-left: 4px solid var(--yel); background: var(--yel-bg); padding: 10px 12px; border-radius: 4px }
-.warn.red { border-color: var(--red); background: var(--red-bg) }
-ul { margin: 0; padding-left: 20px }
-.links { display: flex; flex-wrap: wrap; gap: 12px; font-size: .9rem }
-a { color: var(--accent) }
-.tbl { overflow-x: auto }
-table { border-collapse: collapse; width: 100%; font-size: .88rem }
-th, td { text-align: left; padding: 8px; border-bottom: 1px solid var(--line); vertical-align: top }
-th { font-weight: 600; color: var(--muted); font-size: .75rem; text-transform: uppercase; letter-spacing: .06em }
-td.v { font-family: var(--mono); font-variant-numeric: tabular-nums }
-td.n { color: var(--muted) }
-.pill { display: inline-block; font: 600 .72rem var(--mono); padding: 2px 8px; border-radius: 99px; white-space: nowrap }
-.p-RED { color: var(--red); background: var(--red-bg) } .p-YEL { color: var(--yel); background: var(--yel-bg) }
-.p-GRN { color: var(--grn); background: var(--grn-bg) } .p-NA, .p-SKIP { color: var(--na); background: var(--na-bg) }
-#log { font: 12px var(--mono); color: var(--muted); white-space: pre-wrap; margin: 0 }
-textarea { width: 100%; min-height: 160px; font: 12px var(--mono); background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 6px; padding: 8px }
-.safety { font-size: .85rem; color: var(--muted) }
-/* extension popup: Chrome caps it at 800px wide */
-html.ext body { width: 780px }
-html.ext main { padding-block: 12px 24px; gap: 14px }
-</style>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,400..900;1,62..125,400..900&family=Instrument+Sans:wght@400..700&family=Martian+Mono:wdth,wght@75..112.5,400..700&display=swap">
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<main>
-  <header>
-    <h1>Coin-tjek</h1>
-    <p class="sub">Rug-pull-tjeklisten (V1–V17) for alle kæder, kørt direkte i browseren. Kun læsning: siden rører aldrig en wallet.</p>
-  </header>
+<a class="skip" href="#scanner">Skip to the scanner</a>
 
-  <form id="f">
-    <input id="addr" placeholder="Token-adresse (Solana, Ethereum, Base, BSC …)" autocomplete="off" spellcheck="false" aria-label="Token-adresse">
-    <button id="go" type="submit">Tjek coin</button>
-    <button id="tab" class="ghost" type="button" hidden></button>
-    <button id="big" class="ghost" type="button" hidden>Åbn i stor fane</button>
-    <details>
-      <summary>Solana RPC (til V5 fees)</summary>
-      <p>Valgfrit. Tom = gratis offentlig RPC uden nøgle. En egen Helius-URL bruges først og gemmes kun i denne browser.</p>
-      <input id="rpc" placeholder="https://mainnet.helius-rpc.com/?api-key=…" autocomplete="off" spellcheck="false" aria-label="RPC-URL">
-    </details>
-  </form>
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="DK Rug Scan home"><img src="assets/logo.svg" alt="" width="34" height="34"><span class="wordmark"><b>DK</b>RUGSCAN</span></a>
+    <nav class="nav" aria-label="Sections">
+      <a href="#checks">The checks</a>
+      <a href="#videos">Videos</a>
+      <a href="#record">Track record</a>
+      <a href="#token">$DKRUGSCAN</a>
+      <a href="#extension">Chrome extension</a>
+    </nav>
+    <a class="btn btn-ghost btn-tg" href="https://t.me/+TbKLsHjYK1k2NzE0" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M21.5 4.2 2.9 11.4c-1.3.5-1.3 1.2-.2 1.5l4.8 1.5 1.8 5.6c.2.6.4.8.8.8.4 0 .6-.2.9-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.4-1.6z"/></svg>
+      Telegram
+    </a>
+  </div>
+</header>
 
-  <section id="out" class="panel" hidden></section>
-  <pre id="log" aria-live="polite"></pre>
+<main id="top">
+  <section class="hero" id="scanner" aria-labelledby="hero-title">
+    <div class="hero-rug" aria-hidden="true"></div>
+    <div class="beam" aria-hidden="true"></div>
+    <div class="wrap hero-grid">
+      <div>
+        <p class="eyebrow"><span class="red">●</span> Free rug-pull scanner for memecoins</p>
+        <h1 id="hero-title">Scan it<span class="red">before you ape it.</span></h1>
+        <p class="lede">Paste a contract address. DK Rug Scan runs 24 checks on holders, liquidity, fees, bundles and copycats, and turns them into one score from 1 to 10 — in about 15 seconds, right in your browser.</p>
 
-  <p class="safety">Klik aldrig Connect wallet, Approve, Sign eller Update på trading-sider ud fra dette tjek. Seed phrase og private key skal aldrig indtastes nogen steder.</p>
+        <form id="f" class="scan" autocomplete="off">
+          <div class="scan-row">
+            <input id="addr" placeholder="Paste a token address — Solana, Base, Ethereum, BSC …" spellcheck="false" aria-label="Token contract address">
+            <button id="go" class="btn btn-red" type="submit">Scan coin</button>
+          </div>
+          <div class="scan-extra">
+            <button id="tab" class="btn btn-ghost" type="button" hidden></button>
+            <button id="big" class="btn btn-ghost" type="button" hidden>Open in a full tab</button>
+          </div>
+          <pre id="log" aria-live="polite"></pre>
+          <ul class="trust">
+            <li>No wallet connection</li>
+            <li>No sign-up</li>
+            <li>Solana + EVM chains</li>
+            <li>Free</li>
+          </ul>
+          <details class="adv">
+            <summary>Advanced: your own Solana RPC</summary>
+            <p>Optional. Leave it empty to use free public RPCs. Your own RPC URL is tried first and is only stored in this browser.</p>
+            <input id="rpc" placeholder="https://your-rpc.example/?api-key=…" spellcheck="false" aria-label="Solana RPC URL">
+          </details>
+        </form>
+      </div>
+
+      <div class="fan" aria-label="Example scores">
+        <div class="plate plate-go" role="img" aria-label="Example: 9 of 10, buy candidate"><span class="plate-holes" aria-hidden="true"></span><span class="plate-no">9<small>/10</small></span><span class="plate-label">Buy candidate</span></div>
+        <div class="plate plate-hold" role="img" aria-label="Example: 5 of 10, wait"><span class="plate-holes" aria-hidden="true"></span><span class="plate-no">5<small>/10</small></span><span class="plate-label">Wait / caution</span></div>
+        <div class="plate plate-stop" role="img" aria-label="Example: 2 of 10, don't buy"><span class="plate-holes" aria-hidden="true"></span><span class="plate-no">2<small>/10</small></span><span class="plate-label">Don't buy</span></div>
+        <p class="eyebrow fan-cap">One score. Three outcomes.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap report-wrap">
+    <section id="out" class="report" hidden aria-live="polite" aria-label="Scan report"></section>
+  </div>
+
+  <section class="section" id="checks" aria-labelledby="checks-title">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">The rulebook</p>
+        <h2 class="h2" id="checks-title">24 checks.<br><span class="red">One score.</span></h2>
+        <p class="lede">Every rug leaves fingerprints: bundled wallets, fake volume, a dev who can still mint. These are the ones DK Rug Scan looks for. Rules marked <b class="red">hard no</b> cap the score at 2 on their own.</p>
+      </div>
+      <div class="rules">
+        <article class="rule-group">
+          <h3>Who holds it</h3>
+          <p>A handful of wallets that can dump on you is the most common rug of all.</p>
+          <ul class="rule-list">
+            <li><code>V14</code><span><b>Top 10 holders own over 30%</b><span class="hn">hard no</span><br><span class="muted">Pools and known accounts are excluded.</span></span></li>
+            <li><code>V2</code><span><b>Identical balances</b><br><span class="muted">Bundles buy near-equal bags — 1.48%, 1.47%, 1.47%, 1.47%.</span></span></li>
+            <li><code>V18</code><span><b>Farmed wallets</b><span class="hn">hard no</span><br><span class="muted">Top holders whose wallets were all created on the same day, often months earlier.</span></span></li>
+            <li><code>V8</code><span><b>Insider networks</b><br><span class="muted">Wallets linked by transfers, holding a big share of supply.</span></span></li>
+            <li><code>DEV</code><span><b>Dev holds over 5%</b><br><span class="muted">The creator's own bag.</span></span></li>
+          </ul>
+        </article>
+        <article class="rule-group">
+          <h3>Can they pull it</h3>
+          <p>Contract powers and liquidity decide whether the rug can be pulled at all.</p>
+          <ul class="rule-list">
+            <li><code>MINT</code><span><b>Mint authority still on</b><span class="hn">hard no</span><br><span class="muted">The dev can print more tokens.</span></span></li>
+            <li><code>FRZ</code><span><b>Freeze authority still on</b><span class="hn">hard no</span><br><span class="muted">The dev can freeze your tokens.</span></span></li>
+            <li><code>LP</code><span><b>Liquidity not locked or burned</b><br><span class="muted">Unlocked LP can be pulled out of the pool.</span></span></li>
+            <li><code>LIQ</code><span><b>Liquidity under 5–10% of market cap</b><br><span class="muted">A thin pool means you can't get out.</span></span></li>
+            <li><code>EVM</code><span><b>Honeypot and sell tax</b><span class="hn">hard no</span><br><span class="muted">A simulated buy and sell on Ethereum, Base and BSC.</span></span></li>
+          </ul>
+        </article>
+        <article class="rule-group">
+          <h3>Is the volume real</h3>
+          <p>Bots fake activity cheaply. Fees and timing give them away.</p>
+          <ul class="rule-list">
+            <li><code>V5</code><span><b>Total fees under 2 SOL</b><span class="hn">hard no</span><br><span class="muted">Big volume with near-zero fees is bot volume.</span></span></li>
+            <li><code>V3</code><span><b>Sell bots mirroring buys</b><br><span class="muted">Every buy is matched by a sell of the same size.</span></span></li>
+            <li><code>V15</code><span><b>Market cap above 24h volume</b><span class="hn">hard no</span><br><span class="muted">Nobody is actually trading it.</span></span></li>
+            <li><code>V16</code><span><b>More sellers than buyers</b><span class="hn">hard no</span><br><span class="muted">Measured on the shortest window with 20+ trades.</span></span></li>
+            <li><code>V1</code><span><b>Launch bundle</b><br><span class="muted">A huge share of all volume in the very first minute.</span></span></li>
+            <li><code>V6</code><span><b>One wick to the sky</b><br><span class="muted">A single spike the chart never comes near again.</span></span></li>
+          </ul>
+        </article>
+        <article class="rule-group">
+          <h3>Is it the real coin — and the right moment</h3>
+          <p>Copycats and bad timing lose money even when nobody rugs.</p>
+          <ul class="rule-list">
+            <li><code>V19</code><span><b>Copycat</b><br><span class="muted">An older coin with the same name has twice the liquidity.</span></span></li>
+            <li><code>V17</code><span><b>No socials, or a borrowed X account</b><span class="hn">hard no</span><br><span class="muted">Linking someone else's famous account to look legit.</span></span></li>
+            <li><code>V4</code><span><b>Not graduated, or under $50K</b><span class="hn">hard no</span><br><span class="muted">Still on the bonding curve: too early to judge.</span></span></li>
+            <li><code>V9b</code><span><b>Already up 100% in 24 hours</b><br><span class="muted">Late entries mostly bleed out.</span></span></li>
+            <li><code>V20</code><span><b>Down 30% in the last hour</b><br><span class="muted">A falling knife: wait for it to stop.</span></span></li>
+            <li><code>V10</code><span><b>Older than a day</b><br><span class="muted">Fresh entries get the best odds.</span></span></li>
+          </ul>
+        </article>
+      </div>
+      <div class="scale">
+        <div class="plate plate-stop" role="img" aria-label="1 to 3: don't buy"><span class="plate-holes" aria-hidden="true"></span><span class="plate-no">1–3</span><span class="plate-label">Don't buy</span></div>
+        <div class="plate plate-hold" role="img" aria-label="4 to 6: wait"><span class="plate-holes" aria-hidden="true"></span><span class="plate-no">4–6</span><span class="plate-label">Wait</span></div>
+        <div class="plate plate-go" role="img" aria-label="7 to 10: buy candidate"><span class="plate-holes" aria-hidden="true"></span><span class="plate-no">7–10</span><span class="plate-label">Buy candidate</span></div>
+        <p>If a check can't run, the report says <b>INCOMPLETE</b> and the score is capped at 3. A blank never counts as a pass.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="videos" aria-labelledby="videos-title">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Watch it work</p>
+        <h2 class="h2" id="videos-title">Real coins.<br><span class="red">Real scans.</span></h2>
+        <p class="lede">Each video is a live scan of a real coin, start to verdict.</p>
+      </div>
+      <div class="reels" id="reels"></div>
+    </div>
+  </section>
+
+  <section class="section" id="record" aria-labelledby="record-title">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Track record · paper trading since 6 Oct 2026</p>
+        <h2 class="h2" id="record-title">Tested on<br><span class="red">150 live coins.</span></h2>
+        <p class="lede">We picked fresh launches, bonding-curve coins, day-old runners and established tokens, scanned each one, and followed what happened next.</p>
+      </div>
+      <div class="stats">
+        <div class="stat"><span class="num">150</span><p>coins scanned and tracked for up to 48 hours.</p></div>
+        <div class="stat"><span class="num red">54</span><p>of the 102 coins rated <b>Don't buy</b> rugged or dumped within 48 hours.</p></div>
+        <div class="stat"><span class="num">7×</span><p>Coins scoring 5–7 hit 2× seven times as often as coins scoring 1–2 (36% vs 5%).</p></div>
+        <div class="stat"><span class="num">56%</span><p>of all the new memecoins we tracked were dead within two days. That's why you scan first.</p></div>
+      </div>
+      <div class="stories">
+        <div class="story"><h3>Ascent Lab → rule V18</h3><p>Rugged 75 minutes after launch: 11 wallets, all created in batches months earlier, sold in the same block. The scanner now dates every top holder's wallet.</p></div>
+        <div class="story"><h3>iPAID → rule V20</h3><p>Scored well, then kept falling: it was already down 37% in the hour before the scan. A coin falling that fast now waits.</p></div>
+        <div class="story"><h3>SK → rule V9b</h3><p>Up 196% in a day when it was scanned, then bled out. Coins that already doubled in 24 hours died 81% of the time, so it now counts against them.</p></div>
+      </div>
+      <p class="honest">Every rug that slips through becomes a new rule. Paper trading, no real money. DK Rug Scan is a filter, not a prediction: it keeps you out of the obvious rugs, it can't promise that anything pumps.</p>
+    </div>
+  </section>
+
+  <section class="section" id="builder" aria-labelledby="builder-title">
+    <div class="wrap builder">
+      <div class="plate plate-red" role="img" aria-label="Number 9"><span class="plate-holes" aria-hidden="true"></span><span class="plate-no">9</span><span class="plate-label">World ranking · FMX</span></div>
+      <div>
+        <p class="eyebrow" id="builder-title">Built and developed by</p>
+        <h2 class="h2" style="margin:12px 0 22px">Alex Porsing</h2>
+        <blockquote><strong>Pro FMX athlete, currently #9 in the world</strong>, followed by thousands — and a pioneer of memecoin trading in Denmark. Every check in DK Rug Scan started as a rule he trades by, and every rug that gets past it becomes a new one.</blockquote>
+        <div class="links">
+          <a class="btn btn-ghost" href="https://www.instagram.com/alexporsing/" target="_blank" rel="noopener">Instagram @alexporsing</a>
+          <a class="btn btn-ghost" href="https://t.me/+TbKLsHjYK1k2NzE0" target="_blank" rel="noopener">Join the Telegram</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="token" aria-labelledby="token-title">
+    <div class="wrap token">
+      <div class="section-head" style="margin:0">
+        <p class="eyebrow">The community coin</p>
+        <h2 class="ticker" id="token-title"><span>$</span>DKRUGSCAN</h2>
+        <p class="lede">The scanner stays free for everyone. $DKRUGSCAN is the community coin behind it, launching on Solana — and the first coin we'll scan with DK Rug Scan the moment it's live. Same rules, no exceptions.</p>
+      </div>
+      <div class="ca">
+        <p class="eyebrow">Official contract address</p>
+        <div class="ca-box"><code id="ca">Announced at launch</code><button class="btn btn-ghost" type="button" id="ca-copy" hidden>Copy</button></div>
+        <ul>
+          <li>Only trust the address shown here and in the official Telegram.</li>
+          <li>There is no presale. Nobody from DK Rug Scan will DM you first.</li>
+          <li>We will never ask you to connect a wallet, approve or sign anything.</li>
+        </ul>
+        <p>Not financial advice. Memecoins can go to zero.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="extension" aria-labelledby="ext-title">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Chrome extension · free</p>
+        <h2 class="h2" id="ext-title">Scan from<br><span class="red">any coin page.</span></h2>
+        <p class="lede">On DexScreener, pump.fun, GMGN, Axiom, Photon, Birdeye and other coin sites, the extension offers a one-click “Scan from this tab”. It never starts a scan on its own.</p>
+      </div>
+      <ol class="steps">
+        <li><b>Download</b><span class="muted">Get the ZIP below and unzip it.</span></li>
+        <li><b>Developer mode</b><span class="muted">Open <code>chrome://extensions</code> and switch on Developer mode, top right.</span></li>
+        <li><b>Load unpacked</b><span class="muted">Click “Load unpacked” and choose the unzipped folder.</span></li>
+        <li><b>Pin it</b><span class="muted">Pin DK Rug Scan from the puzzle icon. To update, download again and press ↻.</span></li>
+      </ol>
+      <div class="cta-row">
+        <a class="btn btn-red" href="https://github.com/realinktattooherning/AP-COIN-CHECK-/archive/refs/heads/main.zip">Download the extension (ZIP)</a>
+        <a class="btn btn-ghost" href="app.html">Open the scanner on its own</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="safety" aria-labelledby="safety-title">
+    <div class="wrap two">
+      <div>
+        <p class="eyebrow">Wallet safety</p>
+        <h2 class="h2" id="safety-title" style="margin:12px 0 28px">Read-only.<br><span class="red">Always.</span></h2>
+        <ul class="safety">
+          <li><b>It never touches your wallet.</b><span>DK Rug Scan only reads public data. There is no connect button — anything asking you to connect, approve or sign is not us.</span></li>
+          <li><b>Never type your seed phrase.</b><span>Not here, not on any site, not to anyone in a DM.</span></li>
+          <li><b>“Update required” is a scam.</b><span>A site, bot or message saying your wallet needs verifying or updating is trying to drain it.</span></li>
+        </ul>
+      </div>
+      <div class="faq">
+        <p class="eyebrow">Questions</p>
+        <h2 class="h2" style="margin:12px 0 18px">FAQ</h2>
+        <details><summary>Is it really free?</summary><p>Yes. No sign-up, no wallet, no limits. It runs in your browser and reads public data from DexScreener, Rugcheck, GeckoTerminal, pump.fun, Solana RPCs, honeypot.is and GoPlus.</p></details>
+        <details><summary>Which chains does it scan?</summary><p>Solana gets all 24 checks. Ethereum, Base, BSC, Arbitrum and other EVM chains get honeypot, sell-tax and contract-power checks plus the market and holder rules.</p></details>
+        <details><summary>Does a high score mean it will pump?</summary><p>No. A high score means none of the automated rug signs showed up. You still judge the meme, the community and the team yourself — the report lists what to check.</p></details>
+        <details><summary>Why does a report say INCOMPLETE?</summary><p>One of the data sources didn't answer, or the coin is only minutes old. The score is capped at 3 until every check has run. Scan again in a minute.</p></details>
+        <details><summary>Does it work on my phone?</summary><p>Yes. Open this page, paste the address and tap Scan coin.</p></details>
+      </div>
+    </div>
+  </section>
 </main>
 
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot-top">
+      <a class="brand" href="#top"><img src="assets/logo.svg" alt="" width="34" height="34"><span class="wordmark"><b>DK</b>RUGSCAN</span></a>
+      <nav class="foot-links" aria-label="Links">
+        <a href="https://t.me/+TbKLsHjYK1k2NzE0" target="_blank" rel="noopener">Telegram</a>
+        <a href="https://www.instagram.com/alexporsing/" target="_blank" rel="noopener">Instagram</a>
+        <a href="#extension">Chrome extension</a>
+        <a href="https://github.com/realinktattooherning/AP-COIN-CHECK-" target="_blank" rel="noopener">Source on GitHub</a>
+      </nav>
+    </div>
+    <p class="disclaimer">Built and developed by Alex Porsing. DK Rug Scan reads public on-chain data and can be wrong. Nothing on this site is financial advice — always do your own research. © <span id="year">2026</span> DK Rug Scan.</p>
+  </div>
+</footer>
+
 <script src="checker.js"></script>
+<script src="site.js"></script>
 </body>
 </html>

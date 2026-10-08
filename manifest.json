@@ -1,11 +1,23 @@
 {
   "manifest_version": 3,
-  "name": "AP Coin Check",
-  "version": "2.3",
-  "description": "Rug-pull-tjek for Solana memecoins. Kun læsning, rører aldrig en wallet.",
+  "name": "DK Rug Scan",
+  "version": "3.0",
+  "description": "Rug-pull scanner for memecoins: 24 checks, one score from 1 to 10. Read-only, never touches your wallet.",
+  "icons": {
+    "16": "assets/icon-16.png",
+    "32": "assets/icon-32.png",
+    "48": "assets/icon-48.png",
+    "128": "assets/icon-128.png"
+  },
   "action": {
-    "default_popup": "index.html",
-    "default_title": "Tjek coin"
+    "default_popup": "app.html",
+    "default_title": "Scan coin",
+    "default_icon": {
+      "16": "assets/icon-16.png",
+      "32": "assets/icon-32.png",
+      "48": "assets/icon-48.png",
+      "128": "assets/icon-128.png"
+    }
   },
   "permissions": [
     "activeTab",
