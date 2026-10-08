@@ -320,3 +320,4 @@ html.ext .rep-body { grid-template-columns: 1fr }
 .s-INFO .dot { background: var(--rule-2) }
 @media (min-width: 901px) { .why { position: sticky; top: 84px; align-self: start } html.ext .why { position: static } }
 .reel-why { margin: -4px 0 0; color: var(--mist); font-size: 14px }
+.app .app-home { padding: 9px 14px; font-size: 13.5px }

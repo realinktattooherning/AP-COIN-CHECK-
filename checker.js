@@ -924,17 +924,27 @@ async function fromTab() {
   return null;
 }
 
-if (IS_EXT) {
+// the popup is app.html inside the extension; a full tab gets the whole landing page (index.html), never the narrow popup
+const IS_POPUP = IS_EXT && /app\.html$/.test(location.pathname);
+if (IS_POPUP) {
   document.documentElement.classList.add("ext");
   if ($("big")) {
     $("big").hidden = false;
-    $("big").onclick = () => chrome.tabs.create({ url: chrome.runtime.getURL("app.html") + "?a=" + encodeURIComponent($("addr").value.trim()) });
+    $("big").onclick = () => {
+      const a = $("addr").value.trim();
+      chrome.tabs.create({ url: chrome.runtime.getURL("index.html") + (a ? "?a=" + encodeURIComponent(a) : "") });
+    };
   }
+  // links to the landing page open in a real tab instead of squeezing it into the popup
+  document.querySelectorAll('a[href="index.html"]').forEach(l => l.onclick = e => {
+    e.preventDefault();
+    chrome.tabs.create({ url: chrome.runtime.getURL("index.html") });
+  });
 }
 const initial = new URLSearchParams(location.search).get("a") || (/^#[\w:.-]{20,130}$/.test(location.hash) ? location.hash.slice(1) : "");
 // run a linked coin once, then clean the address bar so a bookmark never keeps an old coin
 if (initial) { history.replaceState(null, "", location.pathname); start(initial); }
-else if (IS_EXT && $("tab")) {
+else if (IS_POPUP && $("tab")) {
   // never start on its own: the popup opens empty, and the open tab's coin is only offered as a button
   fromTab().then(c => {
     if (!c) return;
