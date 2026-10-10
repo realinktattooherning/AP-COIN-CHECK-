@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+**Ny session? Læs `HANDOFF.md` i `realinktattooherning/realink-chatbot` (gren `claude/nice-einstein-quw63i`) først.**
+
 Svar på dansk. Selve siden er på engelsk (brand: **DK Rug Scan**, token **$DKRUGSCAN**, bygget af Alex Porsing).
 Repoet er både websiden (Netlify `dkrugscan.netlify.app` + GitHub Pages fra `main`, live ~1 min efter push) og Chrome-udvidelsen
 (`manifest.json`, popup = `app.html`). `index.html` = landingsside med scanneren i heroen, `app.html` = kun scanneren.
