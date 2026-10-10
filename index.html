@@ -83,6 +83,15 @@
     </div>
   </section>
 
+  <div class="wrap stage-wrap">
+    <section id="stage" class="stage" hidden aria-label="Live scan: the jellyfish and its bots">
+      <div class="stage-chart"></div>
+      <canvas aria-hidden="true"></canvas>
+      <div class="stage-cards"></div>
+      <p class="stage-cap" aria-live="polite"></p>
+    </section>
+  </div>
+
   <div class="wrap report-wrap">
     <section id="out" class="report" hidden aria-live="polite" aria-label="Scan report"></section>
   </div>
@@ -307,6 +316,7 @@
 </footer>
 
 <script src="checker.js"></script>
+<script src="stage.js"></script>
 <script src="site.js"></script>
 </body>
 </html>

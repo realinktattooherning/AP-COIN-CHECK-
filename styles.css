@@ -381,3 +381,26 @@ html.ext .rep-body { grid-template-columns: 1fr }
 .narr .mono { font-size: 12px }
 .narr-top { font-size: 13.5px; color: var(--mist) }
 .narr .btn { padding: 6px 10px; font-size: 12.5px; margin-left: auto }
+
+/* ---------- scan stage: the coin's chart behind, the jellyfish and its bots in front ---------- */
+.stage-wrap { padding-top: 28px }
+.stage-wrap:has(#stage[hidden]) { display: none }
+.stage { position: relative; height: clamp(520px, 62vw, 640px); border-radius: 22px; overflow: hidden; border: 1px solid var(--rule);
+  background: radial-gradient(120% 90% at 50% 30%, #13233A 0%, var(--ink) 70%) }
+.stage-chart { position: absolute; inset: 0; opacity: .32; filter: saturate(.7); pointer-events: none }
+.stage-chart iframe { width: 100%; height: 100%; border: 0 }
+.stage::after { content: ""; position: absolute; inset: 0; background: radial-gradient(60% 55% at 50% 42%, rgba(10,15,22,.15), rgba(10,15,22,.78)); pointer-events: none }
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1 }
+.stage-cards { position: absolute; inset: 0; z-index: 2; pointer-events: none }
+.sc { --c: var(--na); position: absolute; transform: translate(-50%, -50%); width: min(220px, 44vw); padding: 10px 12px; border-radius: 12px;
+  background: rgba(13, 20, 30, .82); backdrop-filter: blur(6px); border: 1px solid color-mix(in srgb, var(--c) 55%, transparent);
+  box-shadow: 0 0 0 0 transparent; display: grid; gap: 3px; transition: border-color .4s, box-shadow .6s }
+.sc b { font: 700 11.5px var(--mono); letter-spacing: .07em; text-transform: uppercase; color: var(--c) }
+.sc > span { font-size: 12.5px; line-height: 1.35; color: var(--frost); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden }
+.sc .sc-ticks { display: flex; gap: 2px; margin-top: 4px }
+.sc .tick { height: 4px }
+.sc.b-GRN { --c: var(--go); box-shadow: 0 0 22px -8px var(--go) } .sc.b-YEL { --c: var(--hold); box-shadow: 0 0 22px -8px var(--hold) }
+.sc.b-RED { --c: var(--stop); box-shadow: 0 0 26px -6px var(--stop) } .sc.b-BUSY { --c: #6FA8FF } .sc.b-NA { --c: var(--fog) }
+.stage-cap { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 3; margin: 0; padding: 8px 14px; border-radius: 999px;
+  background: rgba(10, 15, 22, .8); border: 1px solid var(--rule-2); font-size: 13.5px; white-space: nowrap; max-width: calc(100% - 24px); overflow: hidden; text-overflow: ellipsis; display: flex; gap: 8px; align-items: center }
+@media (max-width: 719px) { .stage { height: 760px } .sc { width: 44vw } }

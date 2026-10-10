@@ -858,25 +858,30 @@ const CREW = [
 const RANK = { RED: 4, NA: 3, YEL: 2, GRN: 1, SKIP: 0 };
 const BOT_SVG = `<svg viewBox="0 0 40 40" aria-hidden="true"><path class="bot-ant" d="M20 4v6"/><circle class="bot-ant-tip" cx="20" cy="4" r="2.2"/><rect class="bot-head" x="6" y="10" width="28" height="22" rx="7"/><g class="bot-eyes"><rect x="12" y="17" width="5" height="6" rx="2.5"/><rect x="23" y="17" width="5" height="6" rx="2.5"/></g><path class="bot-mouth" d="M15 27h10"/></svg>`;
 
-function crewHtml(rows, pending) {
-  const cards = CREW.map(b => {
+// one entry per bot: its state (BUSY / RED / NA / YEL / GRN / SKIP), what it says and one tick per check
+function crewState(rows, pending) {
+  return CREW.map(b => {
     const mine = rows.filter(r => b.re.test(r.rule));
     const busy = pending.some(p => b.pend.test(p));
     const scored = mine.filter(r => !(r.rule.includes("(info)") && r.s === NA) && r.s !== SKIP);
     // a real check speaks before an "(info)" row
     const real = scored.filter(r => !r.rule.includes("(info)"));
     const worst = (real.length ? real : scored).reduce((w, r) => (RANK[r.s] > RANK[w.s] ? r : w), { s: "SKIP" });
-    const st = busy ? "BUSY" : worst.s;
     const line = busy ? "Checking …"
       : !scored.length ? "Nothing to check on this coin"
       : worst.s === GRN ? `All ${scored.length} clear`
       : `${worst.s === RED ? "Found" : worst.s === NA ? "Couldn't read" : "Warning"}: ${splitRule(worst.rule)[1].replace(" (info)", "")} — ${worst.v}`;
-    return `<li class="bot b-${st}">
+    return { name: b.name, job: b.job, st: busy ? "BUSY" : worst.s, line, busy,
+      ticks: mine.map(r => ({ s: r.rule.includes("(info)") ? "INFO" : r.s, rule: r.rule })) };
+  });
+}
+
+function crewHtml(rows, pending) {
+  const cards = crewState(rows, pending).map(c => `<li class="bot b-${c.st}">
       <span class="bot-face">${BOT_SVG}</span>
-      <span class="bot-txt"><b>${esc(b.name)}</b><span class="bot-job">${esc(b.job)}</span><span class="bot-line">${esc(line)}</span></span>
-      <span class="bot-ticks" aria-hidden="true">${mine.map(r => `<i class="tick s-${r.rule.includes("(info)") ? "INFO" : r.s}" title="${esc(r.rule)}"></i>`).join("")}${busy ? `<i class="tick s-BUSY"></i>` : ""}</span>
-    </li>`;
-  }).join("");
+      <span class="bot-txt"><b>${esc(c.name)}</b><span class="bot-job">${esc(c.job)}</span><span class="bot-line">${esc(c.line)}</span></span>
+      <span class="bot-ticks" aria-hidden="true">${c.ticks.map(t => `<i class="tick s-${t.s}" title="${esc(t.rule)}"></i>`).join("")}${c.busy ? `<i class="tick s-BUSY"></i>` : ""}</span>
+    </li>`).join("");
   const done = CREW.filter(b => !pending.some(p => b.pend.test(p))).length;
   return `<section class="crew" aria-label="Scan crew">
     <p class="eyebrow">Scan crew · ${done}/${CREW.length} bots done · ${rows.length} checks</p>
@@ -958,6 +963,7 @@ function render(addr, name, pair, L, rows, pending = [], chain = "solana") {
     </div>
     <p class="fine">${SCALE}. A red flag on a hard rule (V4, V5, V14–V18, mint, freeze, honeypot, sell tax) caps the score at 2; a check that could not run caps it at 3. The rules are built for new memecoins ($50K to a few $M) — large established coins get false reds on V14/V15. Reads public data only. Not financial advice.</p>`;
   $("out").hidden = false;
+  if (typeof stageUpdate === "function") stageUpdate(addr, name, pair, crewState(rows, pending), pending, buy, label, tone);
   $("copy").onclick = () => navigator.clipboard.writeText(text).then(
     () => { $("copy").textContent = "Copied"; },
     () => { $("txt").select(); });
