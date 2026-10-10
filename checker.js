@@ -646,8 +646,12 @@ function athFrom(a, rows) {
   if (!a) return;
   const dd = 1 - a.now / a.ath;
   const i9 = rows.findIndex(r => r.rule.startsWith("V9 Momentum"));
-  rows.splice(i9 + 1, 0, { rule: "V9 Drop from the top (info)", s: dd > 0.75 ? YEL : GRN,
-    v: `${(dd * 100).toFixed(0)}% below ATH (${fmt(a.ath)})`, n: "real projects typically pull back ~50%" });
+  // V21 (bystevenr): buy ~70% below ATH while the narrative holds; never the pump itself
+  const [s, n] = dd < 0.3 ? [YEL, "near the top: don't buy the pump, wait for a ~70% correction"]
+    : dd >= 0.65 && dd <= 0.85 ? [GRN, "in the 70% zone: buy candidate ONLY if the narrative is still alive"]
+    : dd > 0.9 ? [YEL, "over 90% down: the narrative is probably dead"]
+    : [GRN, "between the top and the 70% zone: wait"];
+  rows.splice(i9 + 1, 0, { rule: "V21 70% rule (drop from ATH)", s, v: `${(dd * 100).toFixed(0)}% below ATH (${fmt(a.ath)})`, n });
 }
 
 // one number for the user: 1-3 don't buy, 4-6 wait, 7-10 buy candidate
