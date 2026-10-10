@@ -991,31 +991,64 @@ $("f").addEventListener("submit", e => {
   run(a);
 });
 const BASE58 = /0x[0-9a-fA-F]{40}|[1-9A-HJ-NP-Za-km-z]{32,44}/g;
-const COIN_SITES = ["dexscreener.com", "pump.fun", "gmgn.ai", "axiom.trade", "photon-sol.tinyastro.io", "photon.tinyastro.io", "birdeye.so", "solscan.io", "rugcheck.xyz", "bullx.io", "geckoterminal.com", "dextools.io", "etherscan.io", "basescan.org", "bscscan.com", "four.meme", "honeypot.is"];
 const IS_EXT = typeof chrome !== "undefined" && !!(chrome.tabs && chrome.tabs.query);
 
 function start(a) { $("addr").value = a; $("f").requestSubmit(); }
 
-async function fromTab() {
-  // extension popup: take the coin from the open DexScreener / pump.fun / terminal tab
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  let host = "";
-  try { host = new URL(tab.url).hostname.replace(/^www\./, ""); } catch {}
-  // only coin sites; any other page's long ids must not be mistaken for a token
-  if (!COIN_SITES.some(d => host === d || host.endsWith("." + d))) return null;
-  const ids = [...new Set(tab.url.match(BASE58) || [])];
-  for (const id of ids) {
+// rank every address the open page mentions: the URL counts most, then links to coin sites, the title, then the page text
+const COIN_LINK = /dexscreener|pump\.fun|solscan|birdeye|gmgn|axiom|photon|bullx|jup\.ag|raydium|geckoterminal|dextools|etherscan|basescan|bscscan|rugcheck|four\.meme/i;
+function pageCandidates(pg) {
+  const score = new Map();
+  const bump = (str, pts) => { for (const id of new Set(String(str || "").match(BASE58) || [])) score.set(id, (score.get(id) || 0) + pts); };
+  bump(pg.url, 100);
+  for (const l of pg.links || []) bump(l, 12);
+  bump(pg.title, 20);
+  for (const id of String(pg.text || "").match(BASE58) || []) score.set(id, (score.get(id) || 0) + 1);
+  return [...score.entries()].sort((x, y) => y[1] - x[1]).slice(0, 30).map(([id, pts]) => ({ id, pts }));
+}
+
+// resolve candidates to real tokens: an id can be the token itself or a pool (Axiom, Photon and DexScreener URLs show the pool)
+async function resolveCandidates(cands) {
+  const found = new Map();
+  const keep = (p, pts) => {
+    if (!p || !p.baseToken) return;
+    const a = p.baseToken.address, liq = (p.liquidity || {}).usd || 0, old = found.get(a);
+    if (!old || pts > old.pts || (pts === old.pts && liq > old.liq))
+      found.set(a, { addr: a, symbol: p.baseToken.symbol, pts: Math.max(pts, old ? old.pts : 0), liq: Math.max(liq, old ? old.liq : 0), url: p.url, chain: p.chainId });
+  };
+  const sol = cands.filter(c => !EVM_ADDR.test(c.id)), evm = cands.filter(c => EVM_ADDR.test(c.id)).slice(0, 4);
+  const pts = id => (cands.find(c => c.id === id) || {}).pts || 0;
+  if (sol.length) {
+    const ids = sol.map(c => c.id).join(",");
+    const [toks, pairs] = await Promise.all([
+      reqRaw(`https://api.dexscreener.com/tokens/v1/solana/${ids}`, null, 2).catch(() => []),
+      reqRaw(`https://api.dexscreener.com/latest/dex/pairs/solana/${ids}`, null, 2).catch(() => ({})),
+    ]);
+    for (const p of toks || []) keep(p, pts(p.baseToken.address));
+    for (const p of (pairs && pairs.pairs) || []) keep(p, pts(p.pairAddress));
+  }
+  for (const c of evm) {
     try {
-      const t = ((await req(`https://api.dexscreener.com/latest/dex/tokens/${id}`, null, 2)).pairs || [])[0];
-      if (t) return { addr: id, symbol: t.baseToken.symbol };
-      const seg = new URL(tab.url).pathname.split("/")[1] || "";
-      const pc = host === "dexscreener.com" && seg ? seg : EVM_ADDR.test(id) ? "ethereum" : "solana";
-      const p = await req(`https://api.dexscreener.com/latest/dex/pairs/${pc}/${id}`, null, 2);
-      const pair = (p.pairs || [])[0] || p.pair;
-      if (pair && pair.baseToken) return { addr: pair.baseToken.address, symbol: pair.baseToken.symbol };
+      const d = await reqRaw(`https://api.dexscreener.com/latest/dex/search?q=${c.id}`, null, 2);
+      for (const p of d.pairs || []) if ([p.baseToken.address, p.pairAddress].some(x => x.toLowerCase() === c.id.toLowerCase())) keep(p, c.pts);
     } catch {}
   }
-  return null;
+  return [...found.values()].sort((x, y) => y.pts - x.pts || y.liq - x.liq);
+}
+
+async function fromTab() {
+  // extension popup: find the coin on the open tab — a trading terminal, a chart, a livestream, an X post
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  const pg = { url: tab.url || "", title: tab.title || "", links: [], text: "" };
+  // the click that opened the popup lets us read this one tab (activeTab); nothing is changed on the page
+  try {
+    const [r] = await chrome.scripting.executeScript({ target: { tabId: tab.id }, func: re => ({
+      links: [...document.querySelectorAll("a[href]")].map(a => a.href).filter(h => new RegExp(re, "i").test(h)).slice(0, 300),
+      text: (document.body ? document.body.innerText : "").slice(0, 300000), title: document.title,
+    }), args: [COIN_LINK.source] });
+    Object.assign(pg, r.result || {});
+  } catch {}
+  return resolveCandidates(pageCandidates(pg));
 }
 
 // the popup is app.html inside the extension; a full tab gets the whole landing page (index.html), never the narrow popup
@@ -1040,12 +1073,25 @@ const initial = new URLSearchParams(location.search).get("a") || (/^#[\w:.-]{20,
 if (initial) { history.replaceState(null, "", location.pathname); start(initial); }
 else if (IS_POPUP && $("tab")) {
   // never start on its own: the popup opens empty, and the open tab's coin is only offered as a button
-  fromTab().then(c => {
-    if (!c) return;
+  fromTab().then(list => {
+    if (!list.length) return;
+    const [c, ...rest] = list;
     $("tab").textContent = `Scan $${c.symbol || "coin"} from this tab`;
     $("tab").title = c.addr;
     $("tab").hidden = false;
     $("tab").onclick = () => start(c.addr);
+    // a direct link to the coin, and the other coins the page mentions in case the first guess is wrong
+    const box = document.createElement("div");
+    box.className = "tab-more";
+    box.innerHTML = (c.url ? `<a href="${esc(c.url)}" target="_blank" rel="noopener">Open $${esc(c.symbol)} on DexScreener ↗</a>` : "") +
+      `<button type="button" class="linklike" data-copy="${esc(c.addr)}">Copy CA</button>` +
+      (rest.length ? `<span class="muted">Not this one?</span>` + rest.slice(0, 4).map(o => `<button type="button" class="linklike" data-pick="${esc(o.addr)}">$${esc(o.symbol)}</button>`).join("") : "");
+    $("tab").after(box);
+    box.onclick = e => {
+      const t = e.target.closest("button"); if (!t) return;
+      if (t.dataset.pick) start(t.dataset.pick);
+      if (t.dataset.copy) navigator.clipboard.writeText(t.dataset.copy).then(() => { t.textContent = "Copied"; });
+    };
   }).catch(() => {});
 }
 

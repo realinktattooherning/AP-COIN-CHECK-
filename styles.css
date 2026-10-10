@@ -404,3 +404,7 @@ html.ext .rep-body { grid-template-columns: 1fr }
 .stage-cap { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 3; margin: 0; padding: 8px 14px; border-radius: 999px;
   background: rgba(10, 15, 22, .8); border: 1px solid var(--rule-2); font-size: 13.5px; white-space: nowrap; max-width: calc(100% - 24px); overflow: hidden; text-overflow: ellipsis; display: flex; gap: 8px; align-items: center }
 @media (max-width: 719px) { .stage { height: 760px } .sc { width: 44vw } }
+
+/* ---------- popup: coin found on the open tab ---------- */
+.tab-more { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; font-size: 13px; margin-top: 6px }
+.linklike { background: none; border: 0; padding: 0; color: var(--frost); font: inherit; text-decoration: underline; text-decoration-color: var(--dk); text-underline-offset: 3px; cursor: pointer }
