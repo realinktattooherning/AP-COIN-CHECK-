@@ -1,0 +1,9 @@
+# Raw evidence belongs only in the private research repository's release assets.
+*.zip
+*.jsonl
+*.log
+*.zst
+*.tar
+.env
+.env.*
+__pycache__/

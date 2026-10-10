@@ -1,0 +1,8 @@
+[
+  {
+    "id": 1,
+    "priority": 1,
+    "action": { "type": "modifyHeaders", "requestHeaders": [{ "header": "origin", "operation": "remove" }] },
+    "condition": { "urlFilter": "||frontend-api-v3.pump.fun/", "resourceTypes": ["xmlhttprequest"] }
+  }
+]

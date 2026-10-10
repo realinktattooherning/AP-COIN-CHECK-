@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="DK Rug Scan">
+  <!-- Danish flag field with a magnifying lens on the cross: Denmark + scanning -->
+  <rect width="512" height="512" rx="112" fill="#D8193A"/>
+  <rect x="150" width="64" height="512" fill="#fff"/>
+  <rect y="224" width="512" height="64" fill="#fff"/>
+  <line x1="262" y1="336" x2="372" y2="446" stroke="#fff" stroke-width="58" stroke-linecap="round"/>
+  <circle cx="182" cy="256" r="94" fill="#0A0F16" stroke="#fff" stroke-width="40"/>
+  <rect x="112" y="250" width="140" height="12" rx="6" fill="#2FD181"/>
+  <rect x="128" y="226" width="108" height="6" rx="3" fill="#2FD181" opacity=".45"/>
+  <rect x="128" y="280" width="108" height="6" rx="3" fill="#2FD181" opacity=".45"/>
+</svg>

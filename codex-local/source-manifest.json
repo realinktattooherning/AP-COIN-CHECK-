@@ -1,0 +1,481 @@
+{
+  "created_at": "2026-10-10T04:17:57.725485+00:00",
+  "files": [
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/app.html",
+      "destination": "stream-3.5/app.html",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 6067,
+      "sha256": "5d222e536951eb8e675ae6a8266f1eb4a53563b0ddf4eccdf346edbc1e1cfd0d"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/assets/coin-1000.png",
+      "destination": "stream-3.5/assets/coin-1000.png",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 21272,
+      "sha256": "adc1ca6502954a5596c7829b181e905b23ea150ab5f7a78a24e3a5cc4df877f4"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/assets/icon-128.png",
+      "destination": "stream-3.5/assets/icon-128.png",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 3609,
+      "sha256": "250c881e74343c436e72fec6f29390807ad6dd9ee4958a9f5c528a41bfc24e21"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/assets/icon-16.png",
+      "destination": "stream-3.5/assets/icon-16.png",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 571,
+      "sha256": "a3ab34afb31da39f2ec047c74e71ec685ade320a0c4675580d51356375dfa60f"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/assets/icon-180.png",
+      "destination": "stream-3.5/assets/icon-180.png",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 5225,
+      "sha256": "e1345133e61b6e5a82bd6643694f47a3b8eb37e002952456e5d83500cf4cb737"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/assets/icon-192.png",
+      "destination": "stream-3.5/assets/icon-192.png",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 5304,
+      "sha256": "da6453da348a8b3f06672fa0ce280916f2f94ecfe64198dbb5ce56a1c71cb4b2"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/assets/icon-32.png",
+      "destination": "stream-3.5/assets/icon-32.png",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 1018,
+      "sha256": "8f2e582ad8763dfd76531afe0df0cd82e134cc266c73b90c048172737d8a1d9a"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/assets/icon-48.png",
+      "destination": "stream-3.5/assets/icon-48.png",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 1497,
+      "sha256": "427641843b646f93759393d63d5ff275c1dc0aa421d4a256c37a87901f928c5d"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/assets/icon-512.png",
+      "destination": "stream-3.5/assets/icon-512.png",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 15032,
+      "sha256": "b5828ce7ee8c5034a143b6829ee9cb5510b938c1923f7081b877519344b9c74f"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/assets/knit.svg",
+      "destination": "stream-3.5/assets/knit.svg",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 45390,
+      "sha256": "a936476171269b6010f63efa5af581e6a53ab1874fecec654b883fe55e5258ba"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/assets/logo-square.svg",
+      "destination": "stream-3.5/assets/logo-square.svg",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 776,
+      "sha256": "0e287535703169a91832bf866fbaa330a42d1cad6413bd11ed1713644f7a5a18"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/assets/logo.svg",
+      "destination": "stream-3.5/assets/logo.svg",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 785,
+      "sha256": "5e7c6ce58f89f0c6568e6488c1aa9ed61a51a5fe159014846dba63a008c16459"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/assets/og.html",
+      "destination": "stream-3.5/assets/og.html",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 1521,
+      "sha256": "a5b81b424146c7368a616f988fed659d684fd9f4cdbf83aed8cdcdfe626807c1"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/assets/og.png",
+      "destination": "stream-3.5/assets/og.png",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 364443,
+      "sha256": "af854f5126d9c158a0c6beef899e5fa64a9a64f5c004f9eef4d51a6c7eb37b5d"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/assets/reels/reel-1.jpg",
+      "destination": "stream-3.5/assets/reels/reel-1.jpg",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 53811,
+      "sha256": "c7b645d531dc9b90dbc39da1ae34c2085e9757010b8a12ca5cbb1730ab937d03"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/assets/reels/reel-1.mp4",
+      "destination": "stream-3.5/assets/reels/reel-1.mp4",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 2296912,
+      "sha256": "ef2c50a661783718f3f19f4c0b6c9154d478436ed4060554a729cc31a2896533"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/assets/reels/reel-2.jpg",
+      "destination": "stream-3.5/assets/reels/reel-2.jpg",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 62540,
+      "sha256": "60a0e243aed5c8f836bcbe6317936acd417d5865b74f1becb2ccbcf4ab3fccf3"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/assets/reels/reel-2.mp4",
+      "destination": "stream-3.5/assets/reels/reel-2.mp4",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 2518891,
+      "sha256": "b6135102f80b82d4ea7d479be96cf8776ce415cded58b8b64f48167d00e36bdf"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/assets/reels/reel-3.jpg",
+      "destination": "stream-3.5/assets/reels/reel-3.jpg",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 54821,
+      "sha256": "a14e93f5bda488fcb67953af5264e8e71551e095a1c208124cadfa27b8ea14d5"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/assets/reels/reel-3.mp4",
+      "destination": "stream-3.5/assets/reels/reel-3.mp4",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 2356751,
+      "sha256": "f290570c58bdb615f09c31ef0313a5bbe7aaff4f983d6c880fb2c54ce1e866a2"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/background.js",
+      "destination": "stream-3.5/background.js",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 611,
+      "sha256": "32a7d5aa488f3a726fcd69da9622f1e1fac6b85a6861810a66e0ae6c4521e236"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/checker.js",
+      "destination": "stream-3.5/checker.js",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 64551,
+      "sha256": "254a64eec4209fd985fe8168404b88e86991a9d8341d1f8e590de43bd4843209"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/companion-launch.js",
+      "destination": "stream-3.5/companion-launch.js",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 1347,
+      "sha256": "1a502c7d64a0b56576efa55a6be0be85a31a087494a1dd7bfaa4fa0a90279337"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/entry-research-policy.json",
+      "destination": "stream-3.5/entry-research-policy.json",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 2678,
+      "sha256": "f75f76130878824b8bb9a837c83f12c016f23258d4941b8ed5f03c0a6ffbfa9e"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/experience.css",
+      "destination": "stream-3.5/experience.css",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 9749,
+      "sha256": "2bb2bf5015c5a9a1ed66058c034c879e62a246b4a2521d52158e8e3f42cad8d9"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/index.html",
+      "destination": "stream-3.5/index.html",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 28394,
+      "sha256": "70f0a5c8e492f9834d69c4bb0e99d8f674685a579d8fe65c32e9d3ce7512db11"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/manifest.json",
+      "destination": "stream-3.5/manifest.json",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 1887,
+      "sha256": "f1b38eeef1f422e1bebe6afd062ea260546ee183b0a54b8e8b8696b60c6b954b"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/market-context-policy.json",
+      "destination": "stream-3.5/market-context-policy.json",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 2225,
+      "sha256": "98125262854e23627ad27be1f97537792520edb5d0a72835a8cefb6b0330dda4"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/market-context.js",
+      "destination": "stream-3.5/market-context.js",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 2768,
+      "sha256": "5a830928d00bade5e8c975164520ea767494d57ad039e7b3ab7e7bfea9d42a3f"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/paper-results-data.js",
+      "destination": "stream-3.5/paper-results-data.js",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 6461,
+      "sha256": "08f8fa8b45d5e3cafba8291cc81aa55a89e1252860fbcb56da1827e6289ad9f1"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/paper-results.js",
+      "destination": "stream-3.5/paper-results.js",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 3376,
+      "sha256": "8d0327a788b71ebed9236369ad542efa90392180328e6a4b84319d2f32718b37"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/paper-results.json",
+      "destination": "stream-3.5/paper-results.json",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 7990,
+      "sha256": "47b72023552c645200e82b35c76b63fce43e7e6cd7f7e20f4bd368d05df4f51a"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/reported-creators.json",
+      "destination": "stream-3.5/reported-creators.json",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 6223,
+      "sha256": "d1d157f4bcdbdb23d0517987e7c6f768c7c94411a5949816a9c291c18119064e"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/research-core.js",
+      "destination": "stream-3.5/research-core.js",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 4588,
+      "sha256": "ae709e48ec08b8dc9de1a2d72c16f334c9c96da9df1febe0e5f62bfc01c019d9"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/research-ui.js",
+      "destination": "stream-3.5/research-ui.js",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 13089,
+      "sha256": "950749569123af095023604276c6362905cc79a1831196fe9e0631aa24ba7f71"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/research.css",
+      "destination": "stream-3.5/research.css",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 791,
+      "sha256": "328d25e78fc687822a3d5221f1e82b181ed5e17926088a46e97e725997babf2a"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/risk-profiles.js",
+      "destination": "stream-3.5/risk-profiles.js",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 2352,
+      "sha256": "f781739ace2357f792c28270f74f74796952d673af7544427602ed522ab36ba9"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/risk-ui.js",
+      "destination": "stream-3.5/risk-ui.js",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 3146,
+      "sha256": "d833639177ff57806ff5d05c25bd105def9a7a76329be027dcf7e07fb39df81f"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/rules.json",
+      "destination": "stream-3.5/rules.json",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 255,
+      "sha256": "9bbbf530925d2aa3501af992d9f4b6b0694885564a3f5165d440b8996849b697"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/screen-core.js",
+      "destination": "stream-3.5/screen-core.js",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 4791,
+      "sha256": "0a3071d35aba392d3e271f8feaf458d0c627eb7032c3a15f796931667b2d8035"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/screen.css",
+      "destination": "stream-3.5/screen.css",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 4770,
+      "sha256": "005e00f6e84c965c6268e085536d804e0ffa7c2326620e1390b6debcbd221312"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/screen.html",
+      "destination": "stream-3.5/screen.html",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 5068,
+      "sha256": "4f7b0e1a280a8f784895a82b866626ceb4f29b420c5fcc1f0673b7cbcf919f1a"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/screen.js",
+      "destination": "stream-3.5/screen.js",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 20260,
+      "sha256": "83a0faa527c79f46caad9f2fb05e9fa266d3bfc7d68c0c0488f8867a291aa232"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/site.js",
+      "destination": "stream-3.5/site.js",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 2053,
+      "sha256": "fcff4eb98a475a3072bb000dcf1aca17c29dbac78247753b13efc077d27934b7"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/START-HER.txt",
+      "destination": "stream-3.5/START-HER.txt",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 702,
+      "sha256": "3d5e1f71493ff1eba9daeac2d8cd8ddf1c9bd720978eb81774dc112294a3b7ee"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/styles.css",
+      "destination": "stream-3.5/styles.css",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 23600,
+      "sha256": "95e34430992673b6e9abf35a7c9ba7a2330462aea956977af83887ec6746070c"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/vendor/ocr/core/tesseract-core-lstm.wasm",
+      "destination": "stream-3.5/vendor/ocr/core/tesseract-core-lstm.wasm",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 2871085,
+      "sha256": "220e2e87551edccb85519796a170469f8ab2a8055216789e3b8b1ada18b7bc2b"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/vendor/ocr/core/tesseract-core-lstm.wasm.js",
+      "destination": "stream-3.5/vendor/ocr/core/tesseract-core-lstm.wasm.js",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 3954181,
+      "sha256": "775a35df6f2ae100e02609443e6bd5cafcd07983dd6175454ca4a432a7730687"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/vendor/ocr/core/tesseract-core-simd-lstm.wasm",
+      "destination": "stream-3.5/vendor/ocr/core/tesseract-core-simd-lstm.wasm",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 2871377,
+      "sha256": "187d76742dfc0d8929f0b49a619f145bb6370730776c7bd0d3e20c6b2098808d"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/vendor/ocr/core/tesseract-core-simd-lstm.wasm.js",
+      "destination": "stream-3.5/vendor/ocr/core/tesseract-core-simd-lstm.wasm.js",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 3954569,
+      "sha256": "9d7c43fb206dc9f48475228b46bf35f888fa9e6259da2e67d5a75c77049f2dc7"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/vendor/ocr/core/tesseract-core-simd.wasm",
+      "destination": "stream-3.5/vendor/ocr/core/tesseract-core-simd.wasm",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 3469078,
+      "sha256": "ca11ee92a02023e4f5083eefd0966fb83b297416da54e997b9f6ce445f719c9b"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/vendor/ocr/core/tesseract-core-simd.wasm.js",
+      "destination": "stream-3.5/vendor/ocr/core/tesseract-core-simd.wasm.js",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 4751193,
+      "sha256": "3b0678c47a8dea6abb931b214171c08b742a5b9a9fcbbb1a028a08d5de6e9d4c"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/vendor/ocr/core/tesseract-core.wasm",
+      "destination": "stream-3.5/vendor/ocr/core/tesseract-core.wasm",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 3468788,
+      "sha256": "740f7e466a2f026e1f1e54a2e0d9957e386d8166110d1290224abd3d08986106"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/vendor/ocr/core/tesseract-core.wasm.js",
+      "destination": "stream-3.5/vendor/ocr/core/tesseract-core.wasm.js",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 4750805,
+      "sha256": "e66872f6a76f5ad414d73d21512245df0de3060ad4871a97c47efceaab27b955"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/vendor/ocr/lang/eng.traineddata.gz",
+      "destination": "stream-3.5/vendor/ocr/lang/eng.traineddata.gz",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 2952873,
+      "sha256": "45b4cb346724ac1774f1c36f42f182b887bcdb28ebe63e6fff90ac41f3fcff91"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/vendor/ocr/sources.json",
+      "destination": "stream-3.5/vendor/ocr/sources.json",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 1457,
+      "sha256": "37930571b2a122aca5430bfe3a071f509b069eb31175398373d4c0787d3009d7"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/vendor/ocr/tessdata-LICENSE.txt",
+      "destination": "stream-3.5/vendor/ocr/tessdata-LICENSE.txt",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 11357,
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/vendor/ocr/tesseract.js-core-LICENSE.txt",
+      "destination": "stream-3.5/vendor/ocr/tesseract.js-core-LICENSE.txt",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 11358,
+      "sha256": "c6596eb7be8581c18be736c846fb9173b69eccf6ef94c5135893ec56bd92ba08"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/vendor/ocr/tesseract.js-LICENSE.txt",
+      "destination": "stream-3.5/vendor/ocr/tesseract.js-LICENSE.txt",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 11357,
+      "sha256": "b40930bbcf80744c86c46a12bc9da056641d722716c378f5659b9e555ef833e1"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/vendor/ocr/tesseract.min.js",
+      "destination": "stream-3.5/vendor/ocr/tesseract.min.js",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 62961,
+      "sha256": "10fff78484067759c43028a02a72d76d0b90eb17302bb23b58a9ec5410bc928b"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/vendor/ocr/tesseract.min.js.LICENSE.txt",
+      "destination": "stream-3.5/vendor/ocr/tesseract.min.js.LICENSE.txt",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 149,
+      "sha256": "cdf963ced7d25a0f98901a547647b4d6e2dbe0197fd78c87a059a87b0e542fe2"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/vendor/ocr/worker.min.js",
+      "destination": "stream-3.5/vendor/ocr/worker.min.js",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 111162,
+      "sha256": "38645599043239c0eb6db08a6504a92dcdc292200535f3e9339cd77c4443b842"
+    },
+    {
+      "source": "outputs/DK-Rug-Scan-Stream-3.5/vendor/ocr/worker.min.js.LICENSE.txt",
+      "destination": "stream-3.5/vendor/ocr/worker.min.js.LICENSE.txt",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 466,
+      "sha256": "45f54171aeaa1d10c0c1a66f374b7bba1f02472b1487fbe892eec04f840002ac"
+    },
+    {
+      "source": "work/AP-COIN-CHECK/checker.js",
+      "destination": "legacy-2.4/checker.js",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 59093,
+      "sha256": "724a84c9a4802b6c37244c8cd76f55e9892237cb149858f1690ce5ef68ca523a"
+    },
+    {
+      "source": "work/AP-COIN-CHECK/flow-analysis.js",
+      "destination": "legacy-2.4/flow-analysis.js",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 2921,
+      "sha256": "7d95638154b04a3a216c695fbc4402a8e89665ae0ede7e15dcf14c9013e1dd0d"
+    },
+    {
+      "source": "work/AP-COIN-CHECK/index.html",
+      "destination": "legacy-2.4/index.html",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 5984,
+      "sha256": "5620a2b070bc8144049d3aa93adba51983f60597e9571c969b7db76304fdf5f6"
+    },
+    {
+      "source": "work/AP-COIN-CHECK/manifest.json",
+      "destination": "legacy-2.4/manifest.json",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 1267,
+      "sha256": "d713c0f0600c7b829477282df8ce6b795ff1bcfbf3cc03d939a4fc2d8c41e5ce"
+    },
+    {
+      "source": "work/AP-COIN-CHECK/rules.json",
+      "destination": "legacy-2.4/rules.json",
+      "repo": "AP-COIN-CHECK-",
+      "bytes": 263,
+      "sha256": "68d21ab4a2daf53f622b4c916fd1f544cbf0c39b56a2421670377f59a5ecc072"
+    }
+  ]
+}

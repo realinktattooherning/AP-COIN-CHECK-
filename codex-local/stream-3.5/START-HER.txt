@@ -1,0 +1,11 @@
+DK Rug Scan - Stream 3.5
+Ny regel fra XiLee-videoen: dokumenter aktuel omtale og sammenlign samme narrativ
+med baade positive og negative forloeb. Manuel kildevurdering med tidspunkt.
+X/TikTok, migration og sammenligningsafkast bekraeftes ikke automatisk.
+Felterne gemmes kun i sessionen. Hent researchnotat gemmer din vurdering lokalt.
+Tidligere creator-advarsel og pullback-research er bevaret.
+Scorer, sikkerhedstjek, profiler og historiske resultater er uaendrede.
+
+Indlaes udpakket: vaelg denne mappe i chrome://extensions. Kortet skal vise 3.5.
+Website er ikke publiceret eller aendret med denne pakke. Ingen _redirects.
+Ingen wallet, signering, handler eller garanti om 100x/gevinst.

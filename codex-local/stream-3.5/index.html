@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>DK Rug Scan — scan it before you ape it</title>
+<meta name="description" content="Free rug-pull scanner for memecoins. Paste a contract address and get 24 checks on holders, liquidity, fees, bundles and copycats, scored 1–10. Runs in your browser, never touches your wallet.">
+<meta name="theme-color" content="#0A0F16">
+<link rel="icon" href="assets/icon-32.png" sizes="32x32">
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="DK Rug Scan — scan it before you ape it">
+<meta property="og:description" content="24 automated rug-pull checks, one score from 1 to 10. Free, in your browser, never touches your wallet.">
+<meta property="og:image" content="https://realinktattooherning.github.io/AP-COIN-CHECK-/assets/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://realinktattooherning.github.io/AP-COIN-CHECK-/assets/og.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,400..900;1,62..125,400..900&family=Instrument+Sans:wght@400..700&family=Martian+Mono:wdth,wght@75..112.5,400..700&display=swap">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="experience.css">
+</head>
+<body>
+<dialog id="risk-gate" class="risk-gate" aria-labelledby="risk-title" aria-describedby="risk-description">
+  <div class="risk-intro"><div><p class="eyebrow">DK Rug Scan / Choose your approach</p><h2 id="risk-title" tabindex="-1" autofocus>Before the coin.<br><span class="red">Choose your risk.</span></h2><p id="risk-description" class="lede">Your budget is not your risk tolerance. Choose by what you can afford to lose. New to trading? Start on paper in any profile.</p></div><img src="assets/logo.svg" alt="" width="54" height="54"></div>
+  <div class="risk-options">
+    <article class="risk-card" data-profile-card="1"><div class="risk-card-top"><span class="risk-number">01</span><span class="risk-tag">Level 1<br>High risk</span></div><h3>Explore upside.</h3><p class="risk-budget">Under $500 · Risk capital only</p><p>“I’m exploring big upside with a small starting budget.”</p><ul><li>Market cap and socials become advisory.</li><li>Security and liquidity checks still apply.</li><li>Accept that the entire trade can be lost.</li></ul><button class="btn" data-choose-risk="1" type="button">Choose level 1</button></article>
+    <article class="risk-card" data-profile-card="2"><div class="risk-card-top"><span class="risk-number">02</span><span class="risk-tag">Level 2<br>Full checks</span></div><h3>Take your time.</h3><p class="risk-budget">$1,000+ · Or any patient budget</p><p>“I’m not in a rush. I’d rather wait for a setup.”</p><ul><li>All scanner rules stay active.</li><li>+20% can be a target, never steady income.</li><li>For beginners and experienced traders.</li></ul><button class="btn" data-choose-risk="2" type="button">Choose level 2</button></article>
+    <article class="risk-card" data-profile-card="3"><div class="risk-card-top"><span class="risk-number">03</span><span class="risk-tag">Level 3<br>Paper only</span></div><h3>Protect essentials.</h3><p class="risk-budget">Any budget · Rent and bills come first</p><p>“I need this money. I cannot afford to lose it.”</p><ul><li>Keep essential money out of memecoins.</li><li>Explore every check without risking cash.</li><li>No buy-candidate verdicts in this profile.</li></ul><button class="btn" data-choose-risk="3" type="button">Choose level 3</button></article>
+  </div><p class="risk-gate-foot">Profiles change how the scan is interpreted. They do not execute trades, set stop-losses or guarantee returns. You can change your choice at any time.</p>
+</dialog>
+<noscript><p class="wrap">Enable JavaScript to choose a risk profile and use the scanner. All results below are historical paper results.</p></noscript>
+<a class="skip" href="#scanner">Skip to the scanner</a>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="DK Rug Scan home"><img src="assets/logo.svg" alt="" width="34" height="34"><span class="wordmark"><b>DK</b>RUGSCAN</span></a>
+    <nav class="nav" aria-label="Sections">
+      <a href="#checks">The checks</a>
+      <a href="#videos">Videos</a>
+      <a href="#record">Track record</a>
+      <a href="#token">$DKRUGSCAN</a>
+      <a href="#extension">Chrome extension</a>
+    </nav>
+    <a class="btn btn-ghost btn-tg" href="https://t.me/+TbKLsHjYK1k2NzE0" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M21.5 4.2 2.9 11.4c-1.3.5-1.3 1.2-.2 1.5l4.8 1.5 1.8 5.6c.2.6.4.8.8.8.4 0 .6-.2.9-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.4-1.6z"/></svg>
+      Telegram
+    </a>
+  </div>
+</header>
+<div class="risk-strip"><div class="wrap"><strong class="risk-current" id="risk-current">Choose a profile</strong><p class="risk-note" id="risk-note">Choose how you want to use the scanner.</p><button class="btn btn-ghost risk-change" id="risk-change" type="button">Change profile</button></div></div>
+
+<main id="top">
+  <section class="hero" id="scanner" aria-labelledby="hero-title">
+    <div class="hero-rug" aria-hidden="true"></div>
+    <div class="beam" aria-hidden="true"></div>
+    <div class="wrap hero-grid">
+      <div>
+        <p class="eyebrow"><span class="red">●</span> Read the risk before the trade <span class="hero-profile" id="hero-profile">Choose a profile</span></p>
+        <h1 id="hero-title">Scan it<span class="red">before you ape it.</span></h1>
+        <p class="lede">Paste a contract address. DK Rug Scan runs 24 checks on holders, liquidity, fees, bundles and copycats, and turns them into one score from 1 to 10 — with a profile that fits your approach. Public data, right in your browser. A complete scan may take a few minutes.</p>
+
+        <form id="f" class="scan" autocomplete="off">
+          <div class="scan-row">
+            <input id="addr" placeholder="Paste a token address — Solana, Base, Ethereum, BSC …" spellcheck="false" aria-label="Token contract address">
+            <button id="go" class="btn btn-red" type="submit">Scan coin</button>
+          </div>
+          <div class="scan-extra">
+            <a class="btn btn-ghost" href="screen.html" data-open-companion>Scan stream / skærmbillede ↗</a>
+            <button id="tab" class="btn btn-ghost" type="button" hidden></button>
+            <button id="big" class="btn btn-ghost" type="button" hidden>Open in a full tab</button>
+          </div>
+          <pre id="log" aria-live="polite"></pre>
+          <ul class="trust">
+            <li>No wallet connection</li>
+            <li>No sign-up</li>
+            <li>Solana + EVM chains</li>
+            <li>Free</li>
+          </ul>
+          <details class="adv">
+            <summary>Advanced: your own Solana RPC</summary>
+            <p>Optional. Leave it empty to use free public RPCs. Your own RPC URL is tried first and is only stored in this browser.</p>
+            <input id="rpc" placeholder="https://your-rpc.example/?api-key=…" spellcheck="false" aria-label="Solana RPC URL">
+          </details>
+        </form>
+      </div>
+
+      <div class="fan" aria-label="Example scores">
+        <div class="plate plate-go" data-candidate-example role="img" aria-label="Example: 9 of 10, buy candidate"><span class="plate-holes" aria-hidden="true"></span><span class="plate-no">9<small>/10</small></span><span class="plate-label">Buy candidate</span></div>
+        <div class="plate plate-hold" role="img" aria-label="Example: 5 of 10, wait"><span class="plate-holes" aria-hidden="true"></span><span class="plate-no">5<small>/10</small></span><span class="plate-label">Wait / caution</span></div>
+        <div class="plate plate-stop" role="img" aria-label="Example: 2 of 10, don't buy"><span class="plate-holes" aria-hidden="true"></span><span class="plate-no">2<small>/10</small></span><span class="plate-label">Don't buy</span></div>
+        <p class="eyebrow fan-cap">One score. Three outcomes.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap report-wrap">
+    <section id="out" class="report" hidden aria-live="polite" aria-label="Scan report"></section>
+  </div>
+
+  <section class="section" id="checks" aria-labelledby="checks-title">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">The rulebook</p>
+        <h2 class="h2" id="checks-title">24 checks.<br><span class="red">One score.</span></h2>
+        <p class="lede">Every rug leaves fingerprints: bundled wallets, fake volume, a dev who can still mint. These are the ones DK Rug Scan looks for. Rules marked <b class="red">hard no</b> cap the score at 2 on their own.</p>
+      </div>
+      <div class="rules">
+        <article class="rule-group">
+          <h3>Who holds it</h3>
+          <p>A handful of wallets that can dump on you is the most common rug of all.</p>
+          <ul class="rule-list">
+            <li><code>V14</code><span><b>Top 10 holders own over 30%</b><span class="hn">hard no</span><br><span class="muted">Pools and known accounts are excluded.</span></span></li>
+            <li><code>V2</code><span><b>Identical balances</b><br><span class="muted">Bundles buy near-equal bags — 1.48%, 1.47%, 1.47%, 1.47%.</span></span></li>
+            <li><code>V18</code><span><b>Farmed wallets</b><span class="hn">hard no</span><br><span class="muted">Top holders whose wallets were all created on the same day, often months earlier.</span></span></li>
+            <li><code>V8</code><span><b>Insider networks</b><br><span class="muted">Wallets linked by transfers, holding a big share of supply.</span></span></li>
+            <li><code>DEV</code><span><b>Dev holds over 5%</b><br><span class="muted">The creator's own bag.</span></span></li>
+          </ul>
+        </article>
+        <article class="rule-group">
+          <h3>Can they pull it</h3>
+          <p>Contract powers and liquidity decide whether the rug can be pulled at all.</p>
+          <ul class="rule-list">
+            <li><code>MINT</code><span><b>Mint authority still on</b><span class="hn">hard no</span><br><span class="muted">The dev can print more tokens.</span></span></li>
+            <li><code>FRZ</code><span><b>Freeze authority still on</b><span class="hn">hard no</span><br><span class="muted">The dev can freeze your tokens.</span></span></li>
+            <li><code>LP</code><span><b>Liquidity not locked or burned</b><br><span class="muted">Unlocked LP can be pulled out of the pool.</span></span></li>
+            <li><code>LIQ</code><span><b>Liquidity under 5–10% of market cap</b><br><span class="muted">A thin pool means you can't get out.</span></span></li>
+            <li><code>EVM</code><span><b>Honeypot and sell tax</b><span class="hn">hard no</span><br><span class="muted">A simulated buy and sell on Ethereum, Base and BSC.</span></span></li>
+          </ul>
+        </article>
+        <article class="rule-group">
+          <h3>Is the volume real</h3>
+          <p>Bots fake activity cheaply. Fees and timing give them away.</p>
+          <ul class="rule-list">
+            <li><code>V5</code><span><b>Total fees under 2 SOL</b><span class="hn">hard no</span><br><span class="muted">Big volume with near-zero fees is bot volume.</span></span></li>
+            <li><code>V3</code><span><b>Sell bots mirroring buys</b><br><span class="muted">Every buy is matched by a sell of the same size.</span></span></li>
+            <li><code>V15</code><span><b>Market cap above 24h volume</b><span class="hn" data-risk-rule>hard no</span><br><span class="muted">Nobody is actually trading it.</span></span></li>
+            <li><code>V16</code><span><b>More sellers than buyers</b><span class="hn">hard no</span><br><span class="muted">Measured on the shortest window with 20+ trades.</span></span></li>
+            <li><code>V1</code><span><b>Launch bundle</b><br><span class="muted">A huge share of all volume in the very first minute.</span></span></li>
+            <li><code>V6</code><span><b>One wick to the sky</b><br><span class="muted">A single spike the chart never comes near again.</span></span></li>
+          </ul>
+        </article>
+        <article class="rule-group">
+          <h3>Is it the real coin — and the right moment</h3>
+          <p>Copycats and bad timing lose money even when nobody rugs.</p>
+          <ul class="rule-list">
+            <li><code>V19</code><span><b>Copycat</b><br><span class="muted">An older coin with the same name has twice the liquidity.</span></span></li>
+            <li><code>V17</code><span><b>No socials, or a borrowed X account</b><span class="hn" data-risk-rule>hard no</span><br><span class="muted">Linking someone else's famous account to look legit.</span></span></li>
+            <li><code>V4</code><span><b>Not graduated, or under $50K</b><span class="hn">hard no</span><br><span class="muted">Bonding-curve check stays active. The market-cap threshold is advisory in level 1.</span></span></li>
+            <li><code>V9b</code><span><b>Already up 100% in 24 hours</b><br><span class="muted">Late entries mostly bleed out.</span></span></li>
+            <li><code>V20</code><span><b>Down 30% in the last hour</b><br><span class="muted">A falling knife: wait for it to stop.</span></span></li>
+            <li><code>V10</code><span><b>Older than a day</b><br><span class="muted">Fresh entries get the best odds.</span></span></li>
+          </ul>
+        </article>
+      </div>
+      <div class="scale">
+        <div class="plate plate-stop" role="img" aria-label="1 to 3: don't buy"><span class="plate-holes" aria-hidden="true"></span><span class="plate-no">1–3</span><span class="plate-label">Don't buy</span></div>
+        <div class="plate plate-hold" role="img" aria-label="4 to 6: wait"><span class="plate-holes" aria-hidden="true"></span><span class="plate-no">4–6</span><span class="plate-label">Wait</span></div>
+        <div class="plate plate-go" data-candidate-example role="img" aria-label="7 to 10: buy candidate"><span class="plate-holes" aria-hidden="true"></span><span class="plate-no">7–10</span><span class="plate-label">Buy candidate</span></div>
+        <p id="profile-scale-note">If a required check cannot run, the report says INCOMPLETE and the score is capped at 3. A blank never counts as a pass.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="videos" aria-labelledby="videos-title">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Watch it work</p>
+        <h2 class="h2" id="videos-title">Real coins.<br><span class="red">Real scans.</span></h2>
+        <p class="lede">Each video is a live scan of a real coin, start to verdict.</p>
+      </div>
+      <div class="reels" id="reels"></div>
+    </div>
+  </section>
+
+  <section class="section" id="record" aria-labelledby="record-title">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Track record · audited update 8 Oct 2026</p>
+        <h2 class="h2" id="record-title">Tested on<br><span class="red">570 new paper positions.</span></h2>
+        <p class="lede">We tracked a broad sample across all scores using the same entry pool and token. Missing or incompatible pool data is unknown, never a gain or a rug.</p>
+      </div>
+      <div class="stats">
+        <div class="stat"><span class="num">570</span><p>new paper positions with a valid entry price: 568 before the entry cutoff and 2 checks already in progress that finished later.</p></div>
+        <div class="stat"><span class="num red">231</span><p>positions met the documented 10-hour follow-up requirements. The target of 300 was not reached.</p></div>
+        <div class="stat"><span class="num">61</span><p>of 570 positions reached an observed same-pool price of at least 2× entry (10.70%). These were price observations, not completed profitable trades.</p></div>
+        <div class="stat"><span class="num">90.7%</span><p>of 129 observed price/liquidity-collapse signals had risk flags: 117 flagged, 12 rated good. Collapse-signal coverage is not confirmed rug precision.</p></div>
+      </div>
+
+      <div class="results-panel" id="paper-results">
+        <div class="results-top"><div><span class="proof-label">Completed 8 Oct 2026 · Paper quotes</span><h3>A $200 starting balance.<br>Every outcome on the record.</h3><div class="results-total"><strong>$246.63</strong><span>+$46.63 / +23.32%</span><small>final paper balance</small></div><p class="results-copy">Nine closed positions. Four wins. Five losses. The $1,000 target was not reached. This is one small experiment, not a forecast for any risk profile.</p><div class="result-split"><div><b class="pnl-positive">4</b><span>paper wins</span></div><div><b class="pnl-negative">5</b><span>paper losses</span></div><div><b>44.44%</b><span>win rate · 4 of 9</span></div></div></div><figure class="paper-chart" id="paper-chart"><figcaption>Cumulative net paper P/L at each recorded close (USD). Open positions are excluded.</figcaption></figure></div>
+        <div class="results-toolbar"><div class="results-filters" role="group" aria-label="Filter paper trades"><button type="button" data-result-filter="all" aria-pressed="true">All 9 trades</button><button type="button" data-result-filter="wins" aria-pressed="false">Wins 4</button><button type="button" data-result-filter="losses" aria-pressed="false">Losses 5</button></div><p class="results-filter-summary" id="results-filter-summary" aria-live="polite">All 9 closed paper positions</p></div>
+        <div class="ledger-scroll"><table class="paper-ledger"><caption class="sr-only">Complete paper trade ledger, 8 October 2026. Times shown in UTC.</caption><thead><tr><th scope="col">Coin / closed UTC</th><th scope="col">Entry score</th><th scope="col">Paper stake</th><th scope="col">Paper proceeds</th><th scope="col">Net result</th></tr></thead><tbody id="paper-trades"></tbody></table></div>
+        <div class="result-foot"><p>All nine entry checks were complete and scored 7+/10. Five still lost money. Results assume 1% costs on each side; executable quotes, slippage and actual fills were not verified.</p><a href="paper-results.json" download>Download the numbers and full paper ledger ↓</a></div>
+      </div>
+      <details class="audit-details"><summary>What the wider sample says — and what it cannot prove</summary><div class="audit-grid"><div><p><b>570 new paper entries; 231 with documented 10-hour coverage.</b> Same entry pool and own base token required. 34,517 incompatible quotes across 185 coins were excluded. Missing data stays unknown.</p><p><b>Baseline collapse coverage: 117 / 129 = 90.70%.</b> Twelve coins rated good also showed price/liquidity-collapse signals. These signals are not confirmed rugs.</p></div><div><p><b>Random “good” cohort: 8 wins / 15 closed = 53.33%.</b> Seven losses, two open or unknown, 17 total. This uses a retrospective +50% paper-exit calculation and is separate from the $200 experiment.</p><p><b>No performance claim for the new profiles.</b> Historical scores are unchanged. Level 1’s relaxed rules and the current website have not been validated on a new time-ordered sample.</p></div></div><p>Baseline confirmed-rug measurement: 68 labeled cases, 0 Rugcheck-confirmed rugs, 66 warnings on coins with documented 10-hour window survival and 2 without warnings. Precision 0/66 = 0%; recall is undefined without positive cases. Window survival is not lifetime safety.</p></details>
+
+      <div class="stories">
+        <div class="story"><h3>Ascent Lab → rule V18</h3><p>Rugged 75 minutes after launch: 11 wallets, all created in batches months earlier, sold in the same block. The scanner now dates every top holder's wallet.</p></div>
+        <div class="story"><h3>iPAID → rule V20</h3><p>Scored well, then kept falling: it was already down 37% in the hour before the scan. A coin falling that fast now waits.</p></div>
+        <div class="story"><h3>SK → rule V9b</h3><p>Up 196% in a day when it was scanned, then bled out. The scanner treats an already extended move as timing risk. A later price fall alone does not establish a rug.</p></div>
+      </div>
+      <p class="honest">Audited baseline results, updated 8 Oct 2026: 68 labeled cases, no Rugcheck-confirmed rugs, 66 warnings on coins that survived the documented 10-hour window and 2 without warnings. Precision 0/66 = 0%; recall cannot be calculated without confirmed positive cases. Window survival does not prove future safety. Updated checker 2.4 has no completed separate temporal holdout. Paper trading only; observed prices are not executable fills or guaranteed profit.</p>
+    </div>
+  </section>
+
+  <section class="section" id="builder" aria-labelledby="builder-title">
+    <div class="wrap builder">
+      <div class="plate plate-red" role="img" aria-label="Number 9"><span class="plate-holes" aria-hidden="true"></span><span class="plate-no">9</span><span class="plate-label">World ranking · FMX</span></div>
+      <div>
+        <p class="eyebrow" id="builder-title">Built and developed by</p>
+        <h2 class="h2" style="margin:12px 0 22px">Alex Porsing</h2>
+        <blockquote><strong>Pro FMX athlete, currently #9 in the world</strong>, followed by thousands — and a pioneer of memecoin trading in Denmark. Every check in DK Rug Scan started as a rule he trades by, and every rug that gets past it becomes a new one.</blockquote>
+        <div class="links">
+          <a class="btn btn-ghost" href="https://www.instagram.com/alexporsing/" target="_blank" rel="noopener">Instagram @alexporsing</a>
+          <a class="btn btn-ghost" href="https://t.me/+TbKLsHjYK1k2NzE0" target="_blank" rel="noopener">Join the Telegram</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="token" aria-labelledby="token-title">
+    <div class="wrap token">
+      <div class="section-head" style="margin:0">
+        <p class="eyebrow">The community coin</p>
+        <h2 class="ticker" id="token-title"><span>$</span>DKRUGSCAN</h2>
+        <p class="lede">The scanner stays free for everyone. $DKRUGSCAN is the community coin behind it, launching on Solana — and the first coin we'll scan with DK Rug Scan the moment it's live. Same rules, no exceptions.</p>
+      </div>
+      <div class="ca">
+        <p class="eyebrow">Official contract address</p>
+        <div class="ca-box"><code id="ca">Announced at launch</code><button class="btn btn-ghost" type="button" id="ca-copy" hidden>Copy</button></div>
+        <ul>
+          <li>Only trust the address shown here and in the official Telegram.</li>
+          <li>There is no presale. Nobody from DK Rug Scan will DM you first.</li>
+          <li>We will never ask you to connect a wallet, approve or sign anything.</li>
+        </ul>
+        <p>Not financial advice. Memecoins can go to zero.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="extension" aria-labelledby="ext-title">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Chrome extension · free</p>
+        <h2 class="h2" id="ext-title">Scan from<br><span class="red">any coin page.</span></h2>
+        <p class="lede">On DexScreener, pump.fun, GMGN, Axiom, Photon, Birdeye and other coin sites, the extension offers a one-click “Scan from this tab”. It never starts a scan on its own.</p>
+      </div>
+      <ol class="steps">
+        <li><b>Download</b><span class="muted">Get the ZIP below and unzip it.</span></li>
+        <li><b>Developer mode</b><span class="muted">Open <code>chrome://extensions</code> and switch on Developer mode, top right.</span></li>
+        <li><b>Load unpacked</b><span class="muted">Click “Load unpacked” and choose the unzipped folder.</span></li>
+        <li><b>Pin it</b><span class="muted">Pin DK Rug Scan from the puzzle icon. To update, download again and press ↻.</span></li>
+      </ol>
+      <div class="cta-row">
+        <a class="btn btn-red" href="downloads/DK-Rug-Scan-3.3-extension.zip">Download the extension (ZIP)</a>
+        <a class="btn btn-ghost" href="app.html">Open the scanner on its own</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="safety" aria-labelledby="safety-title">
+    <div class="wrap two">
+      <div>
+        <p class="eyebrow">Wallet safety</p>
+        <h2 class="h2" id="safety-title" style="margin:12px 0 28px">Read-only.<br><span class="red">Always.</span></h2>
+        <ul class="safety">
+          <li><b>It never touches your wallet.</b><span>DK Rug Scan only reads public data. There is no connect button — anything asking you to connect, approve or sign is not us.</span></li>
+          <li><b>Never type your seed phrase.</b><span>Not here, not on any site, not to anyone in a DM.</span></li>
+          <li><b>“Update required” is a scam.</b><span>A site, bot or message saying your wallet needs verifying or updating is trying to drain it.</span></li>
+        </ul>
+      </div>
+      <div class="faq">
+        <p class="eyebrow">Questions</p>
+        <h2 class="h2" style="margin:12px 0 18px">FAQ</h2>
+        <details><summary>Is it really free?</summary><p>Yes. No sign-up, no wallet, no limits. It runs in your browser and reads public data from DexScreener, Rugcheck, GeckoTerminal, pump.fun, Solana RPCs, honeypot.is and GoPlus.</p></details>
+        <details><summary>Which chains does it scan?</summary><p>Solana gets all 24 checks. Ethereum, Base, BSC, Arbitrum and other EVM chains get honeypot, sell-tax and contract-power checks plus the market and holder rules.</p></details>
+        <details><summary>Does a high score mean it will pump?</summary><p>No. The score summarizes the active profile checks. In level 1, market cap and socials are advisory; their original findings stay visible. Level 3 is paper only. A high score cannot guarantee a profit or prevent a rug.</p></details>
+        <details><summary>Why does a report say INCOMPLETE?</summary><p>A required check has missing data. The profile score is capped at 3. Try again later. Market-cap and social checks are advisory in level 1, but missing security checks still prevent a complete result.</p></details>
+        <details><summary>Does it work on my phone?</summary><p>Yes. Open this page, paste the address and tap Scan coin.</p></details>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot-top">
+      <a class="brand" href="#top"><img src="assets/logo.svg" alt="" width="34" height="34"><span class="wordmark"><b>DK</b>RUGSCAN</span></a>
+      <nav class="foot-links" aria-label="Links">
+        <a href="https://t.me/+TbKLsHjYK1k2NzE0" target="_blank" rel="noopener">Telegram</a>
+        <a href="https://www.instagram.com/alexporsing/" target="_blank" rel="noopener">Instagram</a>
+        <a href="#extension">Chrome extension</a>
+        <a href="https://github.com/realinktattooherning/AP-COIN-CHECK-" target="_blank" rel="noopener">Source on GitHub</a>
+      </nav>
+    </div>
+    <p class="disclaimer">Built and developed by Alex Porsing. DK Rug Scan reads public on-chain data and can be wrong. Nothing on this site is financial advice — always do your own research. © <span id="year">2026</span> DK Rug Scan.</p>
+  </div>
+</footer>
+
+<script src="screen-core.js"></script>
+<script src="companion-launch.js"></script>
+<script src="risk-profiles.js"></script>
+<script src="risk-ui.js"></script>
+<script src="checker.js"></script>
+<script src="site.js"></script>
+<script src="paper-results-data.js"></script>
+<script src="paper-results.js"></script>
+</body>
+</html>

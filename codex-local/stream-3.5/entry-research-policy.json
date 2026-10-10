@@ -1,0 +1,46 @@
+{
+  "revision": "entry-research-1",
+  "registered_at": "2026-10-10T02:17:21.787340+00:00",
+  "video_url": "https://x.com/bystevenr/status/2108400638350750118",
+  "review": "Full English automatic subtitles read (00:00-07:28.751), plus 48 visually reviewed sampled frames across the video. Auto captions can misrecognize names. Not an audit of trades.",
+  "source_files": "Archived separately in the local source review; no private paths in this package.",
+  "principles": [
+    {
+      "time": "02:44-02:57",
+      "idea": "Put interesting narrative/volume candidates on a watchlist before chasing the initial pump."
+    },
+    {
+      "time": "02:58-03:18; 06:55-06:59",
+      "idea": "Research a roughly 70% pullback only while the underlying narrative remains relevant."
+    },
+    {
+      "time": "04:14-04:25",
+      "idea": "Plan profit taking; examples of partial sales do not justify rewriting the existing TP50 experiment."
+    },
+    {
+      "time": "05:19-05:40",
+      "idea": "Separate realized profit from a hypothetical missed later peak; limit attention overload."
+    }
+  ],
+  "operationalization": "Measure decline from the observed pre-decision same-pool peak, not an unobserved ATH. Require enough contiguous observations, fresh retrieval, positive liquidity, an up-to-date full risk scan and timestamped manual narrative evidence. Exact reported-creator match holds research for review. Output never authorizes an order.",
+  "defaults_not_validated": {
+    "pullback_pct": 70,
+    "max_quote_age_seconds": 120,
+    "max_observation_gap_seconds": 900,
+    "min_observations": 3,
+    "min_span_seconds": 60,
+    "history_window_seconds": 86400,
+    "max_narrative_age_seconds": 86400
+  },
+  "validation_status": "UNVALIDATED_HYPOTHESIS",
+  "score_effect": 0,
+  "not_inferred": [
+    "The claimed $600k is not independently verified.",
+    "A selloff is not necessarily panic; it may be liquidity removal, insider selling, changed facts or a data error.",
+    "Market-cap chart moves are not executable returns.",
+    "A social link is not evidence that a narrative is intact.",
+    "Shared exchange funder or synchronized trades do not establish common ownership."
+  ],
+  "validation_plan": "Freeze this revision before new candidates. Log all watchlisted and rejected candidates, evidence as known at decision time and source timestamps. Compare later same-pool outcomes in time-ordered holdout, including losses, missing data, costs and liquidity. No post-entry evidence as entry prediction; no historical trial statistics changed.",
+  "wallet_report_url": "https://x.com/bandosei/status/2108215385397059797"
+}

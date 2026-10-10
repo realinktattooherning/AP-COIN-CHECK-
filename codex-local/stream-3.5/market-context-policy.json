@@ -1,0 +1,24 @@
+{
+  "revision": "market-context-1",
+  "registered_at": "2026-10-10T02:40:38Z",
+  "source_url": "https://x.com/XiLeeTrades/status/2108559638429851896",
+  "source_published_at": "2026-10-09T14:06:07Z",
+  "review": "Full public English automatic captions, 00:00-02:26.375, read; all 32 sampled frames viewed on two contact sheets. Video duration 146.22 seconds. Automatic captions may misrecognize words. No trade audit.",
+  "principles": [
+    {"time": "00:00-00:27; 00:48-00:53", "idea": "The speakers focus on the migrated section of a launch feed, particularly for beginners."},
+    {"time": "00:54-01:21", "idea": "Compare current narratives with both coins that performed well and coins that performed badly today."},
+    {"time": "01:38-02:26", "idea": "Look for current cultural attention and meme circulation, with TikTok as an example, rather than relying on an unfamiliar ticker alone."}
+  ],
+  "interpretation": "Record the theme, timestamped social observation and a comparison scope including positive, negative and missing outcomes. These are manual notes; the system validates their binding and time, not the truth of their contents.",
+  "not_adopted": [
+    "The caption's 100x claim is not an established return or prediction.",
+    "An unfamiliar meme, a low market cap or absence from one personalized feed is not proof of scam.",
+    "Migration and popularity do not establish safety or token authenticity."
+  ],
+  "status": "UNVALIDATED_HYPOTHESIS",
+  "score_effect": 0,
+  "buy_signal": false,
+  "operational_defaults_not_from_video": {"evidence_max_age_seconds": 86400, "risk_scan_max_age_seconds": 900},
+  "automation_limits": "No automatic TikTok/X post reading, trend measurement, peer-performance verification or migration confirmation. Scanner-only snapshots produce UNKNOWN context. No market-cap/social safety-rule changes.",
+  "validation_plan": "Before new outcomes, freeze theme tags, selection scope and evidence timestamps for every considered coin, including rejected candidates. Compare later same-pool outcomes on a time-ordered holdout with losses, unknowns and costs. Manual notes and post-entry replay are not prospective validation. Existing trial scores and results stay unchanged."
+}

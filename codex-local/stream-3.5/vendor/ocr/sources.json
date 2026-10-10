@@ -1,0 +1,41 @@
+[
+  {
+    "name": "tesseract.js",
+    "version": "6.0.1",
+    "source": "https://registry.npmjs.org/tesseract.js/-/tesseract.js-6.0.1.tgz",
+    "integrity": "sha512-/sPvMvrCtgxnNRCjbTYbr7BRu0yfWDsMZQ2a/T5aN/L1t8wUQN6tTWv6p6FwzpoEBA0jrN2UD2SX4QQFRdoDbA==",
+    "files": [
+      "tesseract.min.js",
+      "worker.min.js",
+      "tesseract.js-LICENSE.txt",
+      "tesseract.min.js.LICENSE.txt",
+      "worker.min.js.LICENSE.txt"
+    ]
+  },
+  {
+    "name": "tesseract.js-core",
+    "version": "6.0.0",
+    "source": "https://registry.npmjs.org/tesseract.js-core/-/tesseract.js-core-6.0.0.tgz",
+    "integrity": "sha512-1Qncm/9oKM7xgrQXZXNB+NRh19qiXGhxlrR8EwFbK5SaUbPZnS5OMtP/ghtqfd23hsr1ZvZbZjeuAGcMxd/ooA==",
+    "files": [
+      "tesseract.js-core-LICENSE.txt",
+      "core/tesseract-core-lstm.wasm.js",
+      "core/tesseract-core-simd-lstm.wasm.js",
+      "core/tesseract-core-simd.wasm.js",
+      "core/tesseract-core.wasm.js",
+      "core/tesseract-core-lstm.wasm",
+      "core/tesseract-core-simd-lstm.wasm",
+      "core/tesseract-core-simd.wasm",
+      "core/tesseract-core.wasm"
+    ]
+  },
+  {
+    "name": "@tesseract.js-data/eng",
+    "version": "1.0.0",
+    "source": "https://registry.npmjs.org/@tesseract.js-data/eng/-/eng-1.0.0.tgz",
+    "integrity": "sha512-mbTumm6KQPUHyzTPQaF3ObXYnx0SqqfV2nabqFVQBwD6Kl7PhGSLSzOlfFTWy0P3BjghaSKA2W9GB19Jk+ZcTg==",
+    "files": [
+      "lang/eng.traineddata.gz"
+    ]
+  }
+]

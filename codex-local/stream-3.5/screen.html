@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="da">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0A0F16"><title>DK Rug Scan · Stream companion</title><link rel="icon" href="assets/icon-32.png"><link rel="stylesheet" href="screen.css"><link rel="stylesheet" href="research.css"></head>
+<body>
+<header><a class="brand" href="index.html" target="_blank" rel="noopener"><img src="assets/logo.svg" width="30" height="30" alt=""><b>DK<span>RUGSCAN</span></b></a><span class="edition">STREAM / 3.5</span></header>
+<main>
+  <section class="intro"><p class="eyebrow"><span class="dot"></span> FRA STREAM TIL RESEARCH</p><h1>Se den. <em>Tjek den.</em></h1><p>Adressen først. Risikoen bagefter.<br>Hold panelet åbent ved siden af din stream.</p></section>
+  <section class="panel capture-panel" aria-label="Skærmbillede">
+    <div class="step"><span>01</span><h2>Vælg din kilde</h2><span id="source-state" class="tag">Ikke forbundet</span></div>
+    <div class="actions"><button id="connect" class="primary" type="button">Vælg stream-fane</button><button id="capture" type="button" disabled>Tag billede</button><button id="stop" class="quiet" type="button" hidden>Stop deling</button></div>
+    <p class="hint">Vælg fanen med streamen i Chromes dialog. Billeder aflæses kun, når du beder om det.</p>
+    <label class="upload">Eller vælg et billede <input id="upload" type="file" accept="image/png,image/jpeg,image/webp"></label><p class="hint">Du kan også indsætte et skærmbillede med Ctrl+V.</p>
+    <video id="feed" muted playsinline hidden></video>
+    <div id="preview-box" hidden><canvas id="preview" aria-label="Det seneste skærmbillede. Træk over tokenadresse eller navn for at afgrænse OCR."></canvas><div class="preview-foot"><span id="captured-at"></span><button id="reset-crop" type="button" class="quiet">Hele billedet</button></div><p class="hint">Træk en ramme om adresse/navn for bedre aflæsning. Rammen bruges også ved næste billede fra samme fane.</p></div>
+  </section>
+  <section class="panel">
+    <div class="step"><span>02</span><h2>Spørg til coinen</h2></div>
+    <form id="question-form"><label for="question">Navn, adresse eller spørgsmål</label><textarea id="question" rows="2" placeholder="RIPS, gi mig adresse og analyse" maxlength="300" spellcheck="false"></textarea><button id="ask" class="primary full" type="submit">Aflæs &amp; analysér</button></form>
+    <p class="hint">Med en delt fane tager knappen et nyt billede. Spørgsmålet vælger tokennavnet; svaret viser adresse, markedstal og risikotjek. Det er ikke en generel AI-chat.</p>
+    <p id="status" role="status" aria-live="polite">Klar. Vælg en fane, indsæt et billede eller skriv en adresse.</p>
+    <details><summary>Se / ret teksten fra billedet</summary><label for="ocr-text">Aflæst tekst (kan indeholde fejl)</label><textarea id="ocr-text" rows="5" maxlength="20000" spellcheck="false"></textarea><button id="use-text" type="button">Brug teksten uden nyt billede</button><p class="hint">En rettet tekst markeres som manuelt indtastet.</p></details>
+  </section>
+  <section id="results" aria-live="polite"></section>
+  <section id="selected" class="panel answer" hidden aria-label="Valgt token">
+    <div class="step"><span>03</span><h2 id="token-name">Adresse</h2></div><p id="evidence" class="hint"></p><code id="token-address"></code>
+    <div class="actions"><button id="copy" class="primary" type="button">Kopiér adresse</button><a id="pump" class="button" target="_blank" rel="noopener" hidden>Åbn Pump.fun ↗</a><a id="dex" class="button" target="_blank" rel="noopener">Se pool ↗</a></div>
+    <div id="market"></div><p id="market-time" class="hint"></p><p id="movement" class="movement"></p>
+    <div class="actions"><button id="watch" type="button">Følg denne pool · 30 sek.</button><button id="refresh" class="quiet" type="button">Opdatér nu</button></div><p id="watch-state" class="hint">Overvågning er slukket. Ingen skærmpopups eller handler.</p>
+    <details id="risk-analysis" open><summary>Fuld risikoanalyse i panelet</summary><p class="hint">Vælg risikoprofil i scanneren nedenfor. Ukendte checks tæller ikke som godkendt. Et scan kan tage nogle minutter.</p><iframe id="risk-frame" title="DK Rug Scan risikoanalyse" src="about:blank"></iframe></details>
+  </section>
+  <footer><strong>Skærmbilledet bliver i din browser.</strong> Kun fundne adresser eller det valgte tokennavn bruges til offentlige opslag. Et navnematch beviser ikke, at streameren ser samme coin. Markedsdata kan være forsinkede; priser er ikke udførbare salgstilbud. Ingen wallet eller handler.<br><a href="app.html" target="_blank" rel="noopener">Åbn almindelig scanner ↗</a></footer>
+</main><script src="vendor/ocr/tesseract.min.js"></script><script src="screen-core.js"></script><script src="screen.js"></script>
+<script src="research-core.js"></script><script src="market-context.js"></script><script src="research-ui.js"></script></body></html>
