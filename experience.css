@@ -1,0 +1,101 @@
+/* Carry the existing FMX number plates into the profile selector and paper ledger. */
+:root { --profile-accent: #F6B53D; --evidence-blue: #8ABBE3 }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0 }
+html[data-risk="1"] { --profile-accent: #FF4A5E }
+html[data-risk="3"] { --profile-accent: #8ABBE3 }
+.risk-choosing { overflow: hidden }
+.risk-gate { width: min(1160px, calc(100% - 28px)); max-height: calc(100dvh - 28px); margin: auto; padding: 0; border: 1px solid var(--rule-2); border-radius: 22px; color: var(--frost); background: var(--ink); box-shadow: 0 32px 100px #0009; overflow-y: auto }
+.risk-gate::backdrop { background: #05090eec; backdrop-filter: blur(12px) }
+.risk-intro { padding: 34px 38px 28px; border-bottom: 1px solid var(--rule); display: grid; grid-template-columns: 1fr auto; gap: 20px; align-items: start }
+.risk-intro h2 { font: 900 italic clamp(2.3rem, 5vw, 4.5rem)/.92 var(--display); font-stretch: 62%; text-transform: uppercase; margin: 18px 0 16px; max-width: 720px }
+.risk-intro h2:focus { outline: none }
+.risk-intro .lede { max-width: 65ch; font-size: 16px }
+.risk-intro img { width: 54px; margin-top: 4px }
+.risk-options { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 14px; padding: 24px 30px }
+.risk-card { position: relative; display: flex; flex-direction: column; padding: 24px; background: var(--slate); border: 1px solid var(--rule-2); border-radius: 14px; --card-accent: var(--hold); transition: border-color .18s, transform .18s }
+.risk-card:first-child { --card-accent: var(--stop) }
+.risk-card:last-child { --card-accent: var(--evidence-blue) }
+.risk-card:hover, .risk-card:focus-within, .risk-card.is-selected { border-color: var(--card-accent); transform: translateY(-3px) }
+.risk-card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; color: var(--card-accent) }
+.risk-number { font: 900 italic 60px/.9 var(--display); font-stretch: 62%; letter-spacing: -4px }
+.risk-tag { font: 600 10px/1.5 var(--mono); text-transform: uppercase; letter-spacing: .05em; text-align: right }
+.risk-card h3 { font: 750 24px/1.1 var(--body); letter-spacing: -.03em }
+.risk-budget { color: var(--card-accent); font-size: 13px; margin: 9px 0 16px }
+.risk-card p:not(.risk-budget) { color: var(--mist); font-size: 14px; margin: 0 0 14px }
+.risk-card ul { padding-left: 17px; margin: 0 0 24px; font-size: 13px; color: var(--mist); flex: 1 }
+.risk-card li + li { margin-top: 9px }
+.risk-card .btn { width: 100%; font-size: 14px; padding-inline: 8px; border-color: var(--card-accent); background: transparent; color: var(--frost) }
+.risk-card .btn:hover { background: var(--card-accent); color: var(--ink) }
+.risk-gate-foot { margin: 0; padding: 0 32px 26px; color: var(--mist); font-size: 12px }
+.risk-strip { border-bottom: 1px solid var(--rule); background: var(--slate); }
+.risk-strip .wrap { display: flex; gap: 18px; align-items: center; padding-block: 12px }
+.risk-current { color: var(--profile-accent); white-space: nowrap; font: 600 11px/1.4 var(--mono) }
+.risk-note { font-size: 12px; color: var(--mist); flex: 1; margin: 0 }
+.risk-change { padding: 9px 12px; font-size: 12px; flex-shrink: 0 }
+.hero-profile { display: inline-block; color: var(--profile-accent); border: 1px solid var(--profile-accent); padding: 3px 8px; margin-left: 8px; border-radius: 4px }
+.profile-banner { border: 1px solid var(--rule-2); border-left: 3px solid var(--profile-accent); border-radius: 10px; padding: 16px 20px; margin: 18px 0; background: var(--slate) }
+.profile-banner p { margin: 6px 0 0; font-size: 13px; color: var(--mist) }
+.profile-banner strong { color: var(--profile-accent) }
+.advisory-tag { font-size: 10px; text-transform: uppercase; color: var(--evidence-blue); font-style: normal; border: 1px solid var(--rule-2); padding: 2px 5px; border-radius: 4px; white-space: nowrap }
+.chk.is-advisory { border-left: 2px solid var(--evidence-blue) }
+.proof-label { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--rule-2); color: var(--evidence-blue); padding: 7px 10px; border-radius: 6px; font: 600 10px/1.5 var(--mono); letter-spacing: .02em; margin-bottom: 20px }
+.proof-label::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor }
+.results-panel { border: 1px solid var(--rule-2); background: var(--ink-2); border-radius: 18px; overflow: hidden; margin-top: 32px }
+.results-top { display: grid; grid-template-columns: 1fr 1fr; gap: 34px; padding: 30px }
+.results-total { display: flex; gap: 15px; align-items: baseline; flex-wrap: wrap; margin: 14px 0 }
+.results-total strong { font: 900 italic clamp(2.7rem, 5vw, 4.8rem)/1 var(--display); font-stretch: 62% }
+.results-total span { font: 600 13px var(--mono); color: var(--go) }
+.results-total small { color: var(--mist); font-size: 14px }
+.results-copy { color: var(--mist); font-size: 14px; margin: 0; max-width: 53ch }
+.result-split { display: flex; gap: 26px; margin-top: 22px }
+.result-split b { display: block; font: 700 24px/1.2 var(--body) }
+.result-split span { color: var(--mist); font-size: 12px }
+.pnl-positive { color: var(--go) }
+.pnl-negative { color: var(--stop) }
+.paper-chart { align-self: center; min-width: 0 }
+.paper-chart svg { width: 100%; height: auto; overflow: visible }
+.paper-chart text { fill: var(--mist); font: 11px var(--mono) }
+.paper-chart figcaption { color: var(--mist); font-size: 11px; margin-top: 8px }
+.chart-line { stroke: var(--evidence-blue); fill: none; stroke-width: 2.5; stroke-linejoin: round }
+.results-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; padding: 18px 30px; border-block: 1px solid var(--rule) }
+.results-filters { display: flex; padding: 3px; gap: 4px; border: 1px solid var(--rule-2); border-radius: 9px; background: var(--ink) }
+.results-filters button { font: 600 12px var(--body); cursor: pointer; border: 0; border-radius: 6px; background: transparent; color: var(--mist); padding: 9px 14px }
+.results-filters button[aria-pressed="true"] { background: var(--slate-2); color: var(--frost) }
+.results-filter-summary { color: var(--mist); font-size: 12px; margin: 0 }
+.ledger-scroll { overflow-x: auto }
+.paper-ledger { width: 100%; border-collapse: collapse; font-size: 13px; white-space: nowrap }
+.paper-ledger th { color: var(--mist); font: 500 10px var(--mono); text-transform: uppercase; letter-spacing: .03em; text-align: left }
+.paper-ledger td, .paper-ledger th { padding: 15px 24px; border-bottom: 1px solid var(--rule) }
+.paper-ledger tr:last-child td { border-bottom: 0 }
+.paper-ledger tbody tr:hover { background: var(--slate) }
+.paper-ledger td:last-child, .paper-ledger th:last-child { text-align: right }
+.paper-ledger .token-name { color: var(--frost); font-weight: 650; display: block }
+.paper-ledger .token-time { font-size: 10px; color: var(--mist) }
+.result-foot { padding: 20px 30px; border-top: 1px solid var(--rule); font-size: 12px; color: var(--mist) }
+.result-foot p { margin: 0 0 8px }
+.audit-details { margin: 24px 0; border: 1px solid var(--rule); border-radius: 12px; padding: 18px 22px; color: var(--mist); font-size: 14px }
+.audit-details summary { cursor: pointer; color: var(--frost); font-weight: 650 }
+.audit-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px 30px; margin-top: 18px }
+.audit-grid p { margin: 0 0 12px }
+.audit-details a { color: var(--evidence-blue) }
+.reveal-once { animation: reveal-proof .55s ease-out both }
+@keyframes reveal-proof { from { opacity: .4; transform: translateY(12px) } to { opacity: 1; transform: translateY(0) } }
+@media(max-width: 760px) {
+  .risk-intro { padding: 26px 22px 22px }.risk-intro img { width: 36px }.risk-intro h2 { font-size: 2.7rem }
+  .risk-options { grid-template-columns: 1fr; padding: 18px; gap: 12px }.risk-card { padding: 20px }.risk-card-top { margin-bottom: 14px }.risk-number { font-size: 45px }
+  .risk-gate-foot { padding-inline: 22px }.risk-strip .wrap { flex-wrap: wrap; gap: 10px }.risk-note { flex-basis: 100%; order: 3 }.risk-change { margin-left: auto }
+  .results-top { grid-template-columns: 1fr; padding: 22px; gap: 16px }.paper-chart { margin: 12px 0 }.results-toolbar { padding: 16px 18px }.paper-ledger td,.paper-ledger th { padding: 13px 16px }
+  .result-foot { padding: 18px }.audit-grid { grid-template-columns: 1fr }.hero-profile { margin: 8px 0 0; display: table }
+}
+@media(prefers-reduced-motion: reduce) { .risk-card,.btn { transition: none }.reveal-once { animation: none }.risk-card:hover,.risk-card:focus-within { transform: none } }
+
+/* Embedded companion keeps the existing scanner legible in a narrow side panel. */
+html.companion-embedded body { width: 100%; min-width: 0 }
+.companion-embedded .app-head, .companion-embedded .scan-extra { display: none }
+.companion-embedded .app main { width: 100%; padding: 10px; margin: 0 }
+.companion-embedded .risk-gate { max-width: calc(100vw - 16px); max-height: calc(100vh - 16px) }
+.companion-embedded .risk-intro { padding: 16px }.companion-embedded .risk-intro h2 { font-size: 2.2rem }
+.companion-embedded .risk-options { padding: 10px }.companion-embedded .risk-card { padding: 14px }
+.companion-embedded .risk-card-top { margin-bottom: 8px }.companion-embedded .risk-number { font-size: 32px }
+.companion-embedded .risk-strip .wrap { width: 100% }.companion-embedded .scan-row { flex-wrap: wrap }
+.companion-embedded .scan-row input { min-width: 0 }.companion-embedded .rep-body { grid-template-columns: 1fr }

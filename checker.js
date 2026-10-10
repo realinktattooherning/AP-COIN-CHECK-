@@ -398,7 +398,8 @@ async function devCheck(mint, rc, add) {
     // pump.fun blocks websites: fall back to Rugcheck's creatorTokens. Its creator can be a launch tool rather than the dev,
     // so this fallback can warn (yellow) but never give a red
     const ct = ((rc || {}).creatorTokens || []).filter(c => c.mint !== mint);
-    if (!rc || !Array.isArray(rc.creatorTokens)) return add(R, NA, "pump.fun and Rugcheck did not answer", "try again in a minute");
+    // Rugcheck sends creatorTokens: null when the creator has no other coins
+    if (!rc) return add(R, NA, "pump.fun and Rugcheck did not answer", "try again in a minute");
     if (!ct.length) return add(R, GRN, "first launch from this wallet", "Rugcheck creator history (pump.fun not reachable from a website)");
     const deadR = ct.filter(c => (c.marketCap || 0) < 10e3).length;
     return add(R, (ct.length >= 2 && deadR >= 0.8 * ct.length) ? YEL : GRN, `${ct.length} earlier launches, ${deadR} now under $10K`,
@@ -769,6 +770,8 @@ const exclusive = fn => { const p = busy.then(fn, fn); busy = p.catch(() => {});
 let userWaiting = 0;
 
 async function run(addr) {
+  // choose a level first (risk-ui.js shows the chooser); a linked scan resumes after the choice
+  if (window.DKRisk && !DKRisk.chosen()) { window.dispatchEvent(new Event("risk-selection-required")); return; }
   $("go").disabled = true; $("go").classList.add("busy"); $("log").textContent = ""; $("out").hidden = true;
   if ($("rpc")) store.set("rpc", $("rpc").value.trim());
   userWaiting++;
@@ -941,12 +944,16 @@ function render(addr, name, pair, L, rows, pending = [], chain = "solana") {
   const { buy: b0, reasons, flags } = score(rows);
   const missing = pending.length ? [] : rows.filter(r => r.s === NA && !/^V9|^V25|^V26/.test(r.rule));
   // an unscanned check must never look like a pass
-  const buy = missing.length ? Math.min(b0, 3) : b0;
-  const early = !pending.length && !missing.length && tooEarly(rows);
+  // the chosen level (risk-profiles.js) reads the same checks: level 1 makes market cap/socials advisory, level 3 is paper only
+  const view = window.DKRisk && DKRisk.chosen() ? DKRisk.assess(rows, score, pending) : null;
+  const fullBuy = missing.length ? Math.min(b0, 3) : b0;
+  const buy = view ? view.buy : fullBuy;
+  const early = !(view && view.paperOnly) && !pending.length && !missing.length && tooEarly(view ? view.active : rows);
   const reds = rows.filter(r => r.s === RED).length, yels = rows.filter(r => r.s === YEL).length, grns = rows.filter(r => r.s === GRN).length;
   const x = L.twitter ? `${L.twitter}${L.twitterIsPost ? " (a post, not a project account)" : ""}` : "no X link";
-  const label = pending.length ? "SCANNING" : early ? "NOT YET · TOO EARLY" : verdict(buy).t;
-  const tone = pending.length ? "na" : early ? "hold" : TONE[verdict(buy).s];
+  const label = pending.length ? "SCANNING" : view && view.paperOnly ? "PAPER ONLY" : early ? "NOT YET · TOO EARLY" : verdict(buy).t;
+  const tone = pending.length || (view && view.paperOnly) ? "na" : early ? "hold" : TONE[verdict(buy).s];
+  const profile = view ? DKRisk.profiles[DKRisk.get()] : null;
   const chainName = (EVM[chain] || {}).name || (chain === "solana" ? "Solana" : chain);
 
   const text = [
@@ -981,6 +988,7 @@ function render(addr, name, pair, L, rows, pending = [], chain = "solana") {
       </div>
     </div>
     ${crewHtml(rows, pending)}
+    ${profile ? `<div class="profile-banner"><strong>${esc(profile.short)} · ${view.paperOnly ? "Learning score" : "Profile score"} ${buy}/10</strong><p>${esc(profile.note)}</p><p>Full-check score: ${fullBuy}/10.</p></div>` : ""}
     ${pending.length ? `<div class="banner"><span class="spinner" aria-hidden="true"></span><p><strong>Still scanning:</strong> ${esc(pending.join(", "))}. The score can only go down from here — don't buy until it finishes.</p></div>` : ""}
     ${missing.length ? `<div class="banner banner-stop"><p><strong>⚠️ INCOMPLETE — ${missing.length} ${missing.length === 1 ? "check was" : "checks were"} not scanned.</strong> Don't buy until ${missing.length === 1 ? "it is" : "they are"} resolved. The score is capped at 3.</p>
       <ul>${missing.map(r => `<li>${esc(r.rule)}: ${esc(r.v)}${r.n ? ` — ${esc(r.n)}` : ""}</li>`).join("")}</ul></div>` : ""}
@@ -1001,10 +1009,10 @@ function render(addr, name, pair, L, rows, pending = [], chain = "solana") {
       <section class="all">
         <h3>Every check <span class="muted">(${rows.length})</span></h3>
         <ul class="checks">${rows.map(r => { const [code, nm] = splitRule(r.rule); return `
-          <li class="chk s-${r.rule.includes("(info)") && r.s === NA ? "INFO" : r.s}" data-rule="${esc(r.rule)}" data-s="${r.s}" data-v="${esc(r.v)}">
+          <li class="chk ${window.DKRisk && DKRisk.chosen() && DKRisk.advisory(r.rule) ? "is-advisory " : ""}s-${r.rule.includes("(info)") && r.s === NA ? "INFO" : r.s}" data-rule="${esc(r.rule)}" data-s="${r.s}" data-v="${esc(r.v)}">
             <span class="chk-state"><span class="dot" aria-hidden="true"></span>${r.rule.includes("(info)") ? "Info" : STATE[r.s]}</span>
             <span class="chk-code">${esc(code)}</span>
-            <span class="chk-name">${esc(nm)}</span>
+            <span class="chk-name">${esc(nm)}${window.DKRisk && DKRisk.chosen() && DKRisk.advisory(r.rule) ? ' <em class="advisory-tag">Advisory</em>' : ""}</span>
             <span class="chk-val">${esc(r.v)}</span>
             ${r.n ? `<span class="chk-note">${esc(r.n)}</span>` : ""}
           </li>`; }).join("")}</ul>

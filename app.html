@@ -13,8 +13,19 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,400..900;1,62..125,400..900&family=Instrument+Sans:wght@400..700&family=Martian+Mono:wdth,wght@75..112.5,400..700&display=swap">
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="experience.css">
 </head>
 <body class="app">
+<dialog id="risk-gate" class="risk-gate" aria-labelledby="risk-title" aria-describedby="risk-description">
+  <div class="risk-intro"><div><p class="eyebrow">DK Rug Scan / Choose your approach</p><h2 id="risk-title" tabindex="-1" autofocus>Before the coin.<br><span class="red">Choose your risk.</span></h2><p id="risk-description" class="lede">Your budget is not your risk tolerance. Choose by what you can afford to lose. New to trading? Start on paper in any profile.</p></div><img src="assets/logo.svg" alt="" width="54" height="54"></div>
+  <div class="risk-options">
+    <article class="risk-card" data-profile-card="1"><div class="risk-card-top"><span class="risk-number">01</span><span class="risk-tag">Level 1<br>High risk</span></div><h3>Explore upside.</h3><p class="risk-budget">Under $500 · Risk capital only</p><p>“I’m exploring big upside with a small starting budget.”</p><ul><li>Market cap and socials become advisory.</li><li>Security and liquidity checks still apply.</li><li>Accept that the entire trade can be lost.</li></ul><button class="btn" data-choose-risk="1" type="button">Choose level 1</button></article>
+    <article class="risk-card" data-profile-card="2"><div class="risk-card-top"><span class="risk-number">02</span><span class="risk-tag">Level 2<br>Full checks</span></div><h3>Take your time.</h3><p class="risk-budget">$1,000+ · Or any patient budget</p><p>“I’m not in a rush. I’d rather wait for a setup.”</p><ul><li>All scanner rules stay active.</li><li>+20% can be a target, never steady income.</li><li>For beginners and experienced traders.</li></ul><button class="btn" data-choose-risk="2" type="button">Choose level 2</button></article>
+    <article class="risk-card" data-profile-card="3"><div class="risk-card-top"><span class="risk-number">03</span><span class="risk-tag">Level 3<br>Paper only</span></div><h3>Protect essentials.</h3><p class="risk-budget">Any budget · Rent and bills come first</p><p>“I need this money. I cannot afford to lose it.”</p><ul><li>Keep essential money out of memecoins.</li><li>Explore every check without risking cash.</li><li>No buy-candidate verdicts in this profile.</li></ul><button class="btn" data-choose-risk="3" type="button">Choose level 3</button></article>
+  </div><p class="risk-gate-foot">Profiles change how the scan is interpreted. They do not execute trades, set stop-losses or guarantee returns. You can change your choice at any time.</p>
+</dialog>
+<noscript><p class="wrap">Enable JavaScript to choose a risk profile and use the scanner. All results below are historical paper results.</p></noscript>
+
 <main>
   <div class="app-head">
     <a class="brand" href="index.html" target="_top"><img src="assets/logo.svg" alt="" width="34" height="34"><span class="wordmark"><b>DK</b>RUGSCAN</span></a>
@@ -22,6 +33,7 @@
   </div>
 
   <div id="update" class="update-bar" hidden></div>
+  <div class="risk-strip"><div class="wrap"><strong class="risk-current" id="risk-current">Choose a profile</strong><p class="risk-note" id="risk-note">Choose how you want to use the scanner.</p><button class="btn btn-ghost risk-change" id="risk-change" type="button">Change profile</button></div></div>
   <form id="f" class="scan" autocomplete="off">
     <div class="scan-row">
       <input id="addr" placeholder="Paste a token address — Solana, Base, Ethereum, BSC …" spellcheck="false" aria-label="Token contract address">
@@ -46,6 +58,10 @@
 
   <p class="note">Never click Connect wallet, Approve, Sign or Update on a trading site because of a scan. Never type your seed phrase or private key anywhere. Not financial advice.</p>
 </main>
+<script src="screen-core.js"></script>
+<script src="companion-launch.js"></script>
+<script src="risk-profiles.js"></script>
+<script src="risk-ui.js"></script>
 <script src="resolve.js"></script>
 <script src="checker.js"></script>
 </body>
