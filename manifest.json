@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "DK Rug Scan",
-  "version": "3.8",
+  "version": "3.9",
   "description": "Rug-pull scanner for memecoins: 24 checks, one score from 1 to 10. Read-only, never touches your wallet.",
   "icons": {
     "16": "assets/icon-16.png",
@@ -46,7 +46,8 @@
     "https://www.agencypad.fun/*",
     "https://launch.mosaicfi.xyz/*",
     "https://arweave.net/*",
-    "https://realinktattooherning.github.io/*"
+    "https://realinktattooherning.github.io/*",
+    "https://raw.githubusercontent.com/*"
   ],
   "declarative_net_request": {
     "rule_resources": [

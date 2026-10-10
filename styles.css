@@ -412,3 +412,41 @@ html.ext .rep-body { grid-template-columns: 1fr }
 /* ---------- popup: new version on main ---------- */
 .update-bar { background: color-mix(in srgb, var(--hold) 16%, var(--slate)); border: 1px solid color-mix(in srgb, var(--hold) 55%, var(--rule)); border-radius: 12px; padding: 10px 12px; font-size: 13px; margin-bottom: 12px }
 .update-bar b { color: var(--hold) }
+
+/* ---------- hero jellyfish (replaces the plate fan) ---------- */
+.hero-jelly { position: relative; height: 440px; display: grid; align-content: end; justify-items: center; gap: 14px }
+.hero-jelly canvas { position: absolute; inset: -40px -40px 60px; width: calc(100% + 80px); height: calc(100% + 20px); pointer-events: none }
+.hero-scores { position: relative; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center }
+.hero-jelly .fan-cap { position: relative; text-align: center }
+@media (max-width: 960px) { .hero-jelly { height: 340px } }
+
+/* ---------- hub: four cards turn around the jellyfish while you scroll ---------- */
+.hub { border-bottom: 1px solid var(--rule) }
+.hub-pin { position: relative; height: 340vh }
+.hub-sticky { position: sticky; top: 64px; height: calc(100vh - 64px); overflow: hidden;
+  background: radial-gradient(80% 70% at 50% 35%, #13233A 0%, var(--ink) 72%) }
+.hub-top { position: absolute; top: 20px; left: 0; right: 0; display: flex; justify-content: space-between; padding-inline: max(16px, calc((100% - var(--wrap)) / 2)); z-index: 3 }
+.hub-hint { color: var(--frost) }
+.hub-jelly { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1 }
+.hub-ring { position: absolute; left: 50%; top: 50%; width: 0; height: 0; z-index: 2 }
+.hub-card { position: absolute; left: 0; top: 0; width: min(300px, 64vw); text-align: left; display: grid; gap: 6px; padding: 18px 20px; border-radius: 18px; cursor: pointer;
+  color: var(--frost); background: rgba(13, 20, 30, .82); backdrop-filter: blur(8px); border: 1px solid var(--rule-2);
+  transition: border-color .3s, box-shadow .3s; will-change: transform, opacity; font: inherit }
+.hub-card b { font: 900 italic clamp(1.5rem, 2.6vw, 2rem)/1 var(--display); font-stretch: 62% }
+.hub-card > span:not(.hub-no):not(.hub-open) { color: var(--mist); font-size: 14px }
+.hub-no { font: 600 11px var(--mono); letter-spacing: .14em; color: var(--dk-hi) }
+.hub-open { font: 700 12px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--fog) }
+.hub-card.is-front { border-color: var(--dk-hi); box-shadow: 0 0 40px -12px var(--dk-hi) }
+.hub-card.is-front .hub-open { color: var(--dk-hi) }
+.hub-tabs { position: sticky; top: 64px; z-index: 15; display: flex; gap: 6px; overflow-x: auto; padding-block: 10px; background: rgba(10, 15, 22, .88); backdrop-filter: blur(12px) }
+.hub-tabs a { flex: none; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--rule-2); text-decoration: none; font-size: 13.5px; color: var(--mist) }
+.hub-tabs a.is-on { color: #fff; border-color: var(--dk-hi); background: color-mix(in srgb, var(--dk) 22%, transparent) }
+.hub-panel[hidden] { display: none }
+.hub-panel > .section:first-child { padding-top: 40px }
+@media (max-width: 719px) { .hub-pin { height: 300vh } .hub-card { padding: 14px 16px } }
+@media (prefers-reduced-motion: reduce) { .hub-pin { height: auto } .hub-sticky { position: relative; top: 0; height: 70vh } }
+
+/* ---------- live paper trades ---------- */
+.paper-stats { margin-bottom: 8px }
+.paper-stats .num { font-size: clamp(2.2rem, 4.6vw, 3.4rem) }
+.paper-row .radar-act a { font-size: 13px }

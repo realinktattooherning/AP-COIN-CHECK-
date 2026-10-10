@@ -27,11 +27,10 @@
   <div class="wrap">
     <a class="brand" href="#top" aria-label="DK Rug Scan home"><img src="assets/logo.svg" alt="" width="34" height="34"><span class="wordmark"><b>DK</b>RUGSCAN</span></a>
     <nav class="nav" aria-label="Sections">
-      <a href="#checks">The checks</a>
-      <a href="#videos">Videos</a>
-      <a href="#record">Track record</a>
-      <a href="#token">$DKRUGSCAN</a>
-      <a href="#extension">Chrome extension</a>
+      <a href="#p-rules">Rules & system</a>
+      <a href="#p-narrative">Narrative & launch</a>
+      <a href="#p-extension">Extension</a>
+      <a href="#p-finder">Paper trading</a>
     </nav>
     <a class="btn btn-ghost btn-tg" href="https://t.me/+TbKLsHjYK1k2NzE0" target="_blank" rel="noopener">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M21.5 4.2 2.9 11.4c-1.3.5-1.3 1.2-.2 1.5l4.8 1.5 1.8 5.6c.2.6.4.8.8.8.4 0 .6-.2.9-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.4-1.6z"/></svg>
@@ -74,11 +73,12 @@
         </form>
       </div>
 
-      <div class="fan" aria-label="Example scores">
-        <div class="plate plate-go" role="img" aria-label="Example: 9 of 10, buy candidate"><span class="plate-holes" aria-hidden="true"></span><span class="plate-no">9<small>/10</small></span><span class="plate-label">Buy candidate</span></div>
-        <div class="plate plate-hold" role="img" aria-label="Example: 5 of 10, wait"><span class="plate-holes" aria-hidden="true"></span><span class="plate-no">5<small>/10</small></span><span class="plate-label">Wait / caution</span></div>
-        <div class="plate plate-stop" role="img" aria-label="Example: 2 of 10, don't buy"><span class="plate-holes" aria-hidden="true"></span><span class="plate-no">2<small>/10</small></span><span class="plate-label">Don't buy</span></div>
-        <p class="eyebrow fan-cap">One score. Three outcomes.</p>
+      <div class="hero-jelly" aria-label="The DK Rug Scan jellyfish">
+        <canvas id="hero-jelly" aria-hidden="true"></canvas>
+        <div class="hero-scores" aria-label="One score, three outcomes">
+          <span class="verdict-tag v-go">7–10 · buy candidate</span><span class="verdict-tag v-hold">4–6 · wait</span><span class="verdict-tag v-stop">1–3 · don't buy</span>
+        </div>
+        <p class="eyebrow fan-cap">Paste a coin. The jellyfish sends six bots to check it.</p>
       </div>
     </div>
   </section>
@@ -96,34 +96,34 @@
     <section id="out" class="report" hidden aria-live="polite" aria-label="Scan report"></section>
   </div>
 
-  <section class="section" id="radar" hidden aria-labelledby="radar-title">
-    <div class="wrap">
-      <p class="eyebrow"><span class="red">●</span> Live while this page is open</p>
-      <h2 id="radar-title">Radar</h2>
-      <p class="lede">Every 2 minutes the radar pulls new Solana coins from DexScreener (new profiles, boosts, takeovers) and GeckoTerminal (new and trending pools). Coins that pass the screener (graduated, market cap over $50K, under a day old, more volume than market cap, not more sells than buys) get the full scan. Only coins scoring 6/10 or more are listed. Each shows when it was scanned, so you know how fresh the score is. The list starts over every 24 hours.</p>
-      <div class="radar-bar">
-        <button id="radar-toggle" class="btn btn-ghost" type="button">Pause radar</button>
-        <span id="radar-stat" class="mono muted" aria-live="polite"></span>
-      </div>
-      <h3 class="narr-h">Narrative heat <span class="muted">· words in 3+ new coins in the last 6 h</span></h3>
-      <p class="fine">Rising = 3–9 new coins share the word, hot = 10+. Hot means you are late: only the biggest coin of a narrative counts, the rest are copies (V19). It only sees a trend once coins exist; it does not read X.</p>
-      <ul id="narr-list" class="radar-list narr-list"></ul>
-      <h3 class="narr-h">Coins scoring 6/10 or more</h3>
-      <ul id="radar-list" class="radar-list"></ul>
-      <div id="watch" class="watch">
-        <h3>Wallet Watch</h3>
-        <p class="muted">Follow wallets you trust. Every sweep the radar reads what they hold; when 2 or more of them pick up the same coin within an hour, you get an alert here and the coin is scanned first. Read-only: it only looks at public balances, it never connects to a wallet.</p>
-        <form id="watch-form" class="scan-row" autocomplete="off">
-          <input id="watch-addr" placeholder="Wallet address, then an optional name" spellcheck="false" aria-label="Wallet address to follow">
-          <button class="btn btn-ghost" type="submit">Follow wallet</button>
-        </form>
-        <ul id="watch-alerts" class="radar-list"></ul>
-        <details class="adv"><summary>Followed wallets</summary><ul id="watch-list" class="watch-list"></ul></details>
-      </div>
-      <p class="fine">A listed coin is a coin to look at, not a coin to buy. Rescan before you do anything, and check the meme and the hype yourself. Not financial advice.</p>
-    </div>
-  </section>
 
+
+
+
+
+
+
+  <section id="hub" class="hub" aria-label="Explore DK Rug Scan">
+    <div class="hub-pin">
+      <div class="hub-sticky">
+        <p class="hub-top eyebrow"><span>Four ways in</span><span class="hub-hint">Scroll to turn ↓ · tap to open</span></p>
+        <canvas class="hub-jelly" aria-hidden="true"></canvas>
+        <div class="hub-ring">
+          <button class="hub-card" type="button" data-panel="rules" aria-controls="p-rules"><span class="hub-no">01</span><b>Scan rules & system</b><span>24+ checks, six bots, one score — and how it was tested</span><span class="hub-open">Open ↓</span></button>
+          <button class="hub-card" type="button" data-panel="narrative" aria-controls="p-narrative"><span class="hub-no">02</span><b>Narrative, socials & launch</b><span>What is trending, real scans on video, $DKRUGSCAN and who builds it</span><span class="hub-open">Open ↓</span></button>
+          <button class="hub-card" type="button" data-panel="extension" aria-controls="p-extension"><span class="hub-no">03</span><b>Extension</b><span>Scan from any coin page, stream mode in the side panel</span><span class="hub-open">Open ↓</span></button>
+          <button class="hub-card" type="button" data-panel="finder" aria-controls="p-finder"><span class="hub-no">04</span><b>Paper trading & coin finder</b><span>Live paper trades, the radar and Wallet Watch</span><span class="hub-open">Open ↓</span></button>
+        </div>
+      </div>
+    </div>
+    <nav class="hub-tabs wrap" aria-label="Sections">
+      <a href="#p-rules" data-panel="rules">Scan rules & system</a>
+      <a href="#p-narrative" data-panel="narrative">Narrative, socials & launch</a>
+      <a href="#p-extension" data-panel="extension">Extension</a>
+      <a href="#p-finder" data-panel="finder">Paper trading & coin finder</a>
+    </nav>
+    <div class="hub-panels">
+      <div class="hub-panel" id="p-rules" data-panel="rules">
   <section class="section" id="checks" aria-labelledby="checks-title">
     <div class="wrap">
       <div class="section-head">
@@ -187,18 +187,6 @@
       </div>
     </div>
   </section>
-
-  <section class="section" id="videos" aria-labelledby="videos-title">
-    <div class="wrap">
-      <div class="section-head">
-        <p class="eyebrow">Watch it work</p>
-        <h2 class="h2" id="videos-title">Real coins.<br><span class="red">Real scans.</span></h2>
-        <p class="lede">Each video is a live scan of a real coin, start to verdict.</p>
-      </div>
-      <div class="reels" id="reels"></div>
-    </div>
-  </section>
-
   <section class="section" id="record" aria-labelledby="record-title">
     <div class="wrap">
       <div class="section-head">
@@ -220,62 +208,6 @@
       <p class="honest">Every rug that slips through becomes a new rule. Paper trading, no real money. DK Rug Scan is a filter, not a prediction: it keeps you out of the obvious rugs, it can't promise that anything pumps.</p>
     </div>
   </section>
-
-  <section class="section" id="builder" aria-labelledby="builder-title">
-    <div class="wrap builder">
-      <div class="plate plate-red" role="img" aria-label="Number 9"><span class="plate-holes" aria-hidden="true"></span><span class="plate-no">9</span><span class="plate-label">World ranking · FMX</span></div>
-      <div>
-        <p class="eyebrow" id="builder-title">Built and developed by</p>
-        <h2 class="h2" style="margin:12px 0 22px">Alex Porsing</h2>
-        <blockquote><strong>Pro FMX athlete, currently #9 in the world</strong>, followed by thousands — and a pioneer of memecoin trading in Denmark. Every check in DK Rug Scan started as a rule he trades by, and every rug that gets past it becomes a new one.</blockquote>
-        <div class="links">
-          <a class="btn btn-ghost" href="https://www.instagram.com/alexporsing/" target="_blank" rel="noopener">Instagram @alexporsing</a>
-          <a class="btn btn-ghost" href="https://t.me/+TbKLsHjYK1k2NzE0" target="_blank" rel="noopener">Join the Telegram</a>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section" id="token" aria-labelledby="token-title">
-    <div class="wrap token">
-      <div class="section-head" style="margin:0">
-        <p class="eyebrow">The community coin</p>
-        <h2 class="ticker" id="token-title"><span>$</span>DKRUGSCAN</h2>
-        <p class="lede">The scanner stays free for everyone. $DKRUGSCAN is the community coin behind it, launching on Solana — and the first coin we'll scan with DK Rug Scan the moment it's live. Same rules, no exceptions.</p>
-      </div>
-      <div class="ca">
-        <p class="eyebrow">Official contract address</p>
-        <div class="ca-box"><code id="ca">Announced at launch</code><button class="btn btn-ghost" type="button" id="ca-copy" hidden>Copy</button></div>
-        <ul>
-          <li>Only trust the address shown here and in the official Telegram.</li>
-          <li>There is no presale. Nobody from DK Rug Scan will DM you first.</li>
-          <li>We will never ask you to connect a wallet, approve or sign anything.</li>
-        </ul>
-        <p>Not financial advice. Memecoins can go to zero.</p>
-      </div>
-    </div>
-  </section>
-
-  <section class="section" id="extension" aria-labelledby="ext-title">
-    <div class="wrap">
-      <div class="section-head">
-        <p class="eyebrow">Chrome extension · free</p>
-        <h2 class="h2" id="ext-title">Scan from<br><span class="red">any coin page.</span></h2>
-        <p class="lede">On DexScreener, pump.fun, GMGN, Axiom, Photon, Birdeye and other coin sites, the extension offers a one-click “Scan from this tab”. It never starts a scan on its own.</p>
-      </div>
-      <ol class="steps">
-        <li><b>Download</b><span class="muted">Get the ZIP below and unzip it.</span></li>
-        <li><b>Developer mode</b><span class="muted">Open <code>chrome://extensions</code> and switch on Developer mode, top right.</span></li>
-        <li><b>Load unpacked</b><span class="muted">Click “Load unpacked” and choose the unzipped folder.</span></li>
-        <li><b>Pin it</b><span class="muted">Pin DK Rug Scan from the puzzle icon. To update, download again and press ↻.</span></li>
-      </ol>
-      <div class="cta-row">
-        <a class="btn btn-red" href="https://github.com/realinktattooherning/AP-COIN-CHECK-/archive/refs/heads/main.zip">Download the extension (ZIP)</a>
-        <a class="btn btn-ghost" href="app.html">Open the scanner on its own</a>
-      </div>
-    </div>
-  </section>
-
   <section class="section" id="safety" aria-labelledby="safety-title">
     <div class="wrap two">
       <div>
@@ -298,6 +230,130 @@
       </div>
     </div>
   </section>
+      </div>
+      <div class="hub-panel" id="p-narrative" data-panel="narrative" hidden>
+  <section class="section" id="narrative" aria-labelledby="narr-title">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Narratives · live from the radar</p>
+        <h2 class="h2" id="narr-title">What the market<br><span class="red">is talking about.</span></h2>
+        <p class="lede">Every new coin the radar sees feeds this list: a word that shows up in several new coins within a few hours is a narrative forming. Early is better; once it is hot, only the biggest coin of the narrative counts.</p>
+      </div>
+      <h3 class="narr-h">Narrative heat <span class="muted">· words in 3+ new coins in the last 6 h</span></h3>
+      <p class="fine">Rising = 3–9 new coins share the word, hot = 10+. Hot means you are late: only the biggest coin of a narrative counts, the rest are copies (V19). It only sees a trend once coins exist; it does not read X.</p>
+      <ul id="narr-list" class="radar-list narr-list"></ul>
+    </div>
+  </section>
+  <section class="section" id="videos" aria-labelledby="videos-title">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Watch it work</p>
+        <h2 class="h2" id="videos-title">Real coins.<br><span class="red">Real scans.</span></h2>
+        <p class="lede">Each video is a live scan of a real coin, start to verdict.</p>
+      </div>
+      <div class="reels" id="reels"></div>
+    </div>
+  </section>
+  <section class="section" id="token" aria-labelledby="token-title">
+    <div class="wrap token">
+      <div class="section-head" style="margin:0">
+        <p class="eyebrow">The community coin</p>
+        <h2 class="ticker" id="token-title"><span>$</span>DKRUGSCAN</h2>
+        <p class="lede">The scanner stays free for everyone. $DKRUGSCAN is the community coin behind it, launching on Solana — and the first coin we'll scan with DK Rug Scan the moment it's live. Same rules, no exceptions.</p>
+      </div>
+      <div class="ca">
+        <p class="eyebrow">Official contract address</p>
+        <div class="ca-box"><code id="ca">Announced at launch</code><button class="btn btn-ghost" type="button" id="ca-copy" hidden>Copy</button></div>
+        <ul>
+          <li>Only trust the address shown here and in the official Telegram.</li>
+          <li>There is no presale. Nobody from DK Rug Scan will DM you first.</li>
+          <li>We will never ask you to connect a wallet, approve or sign anything.</li>
+        </ul>
+        <p>Not financial advice. Memecoins can go to zero.</p>
+      </div>
+    </div>
+  </section>
+  <section class="section" id="builder" aria-labelledby="builder-title">
+    <div class="wrap builder">
+      <div class="plate plate-red" role="img" aria-label="Number 9"><span class="plate-holes" aria-hidden="true"></span><span class="plate-no">9</span><span class="plate-label">World ranking · FMX</span></div>
+      <div>
+        <p class="eyebrow" id="builder-title">Built and developed by</p>
+        <h2 class="h2" style="margin:12px 0 22px">Alex Porsing</h2>
+        <blockquote><strong>Pro FMX athlete, currently #9 in the world</strong>, followed by thousands — and a pioneer of memecoin trading in Denmark. Every check in DK Rug Scan started as a rule he trades by, and every rug that gets past it becomes a new one.</blockquote>
+        <div class="links">
+          <a class="btn btn-ghost" href="https://www.instagram.com/alexporsing/" target="_blank" rel="noopener">Instagram @alexporsing</a>
+          <a class="btn btn-ghost" href="https://t.me/+TbKLsHjYK1k2NzE0" target="_blank" rel="noopener">Join the Telegram</a>
+        </div>
+      </div>
+    </div>
+  </section>
+      </div>
+      <div class="hub-panel" id="p-extension" data-panel="extension" hidden>
+  <section class="section" id="extension" aria-labelledby="ext-title">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Chrome extension · free</p>
+        <h2 class="h2" id="ext-title">Scan from<br><span class="red">any coin page.</span></h2>
+        <p class="lede">On DexScreener, pump.fun, GMGN, Axiom, Photon, Birdeye and other coin sites, the extension offers a one-click “Scan from this tab”. It never starts a scan on its own.</p>
+      </div>
+      <ol class="steps">
+        <li><b>Download</b><span class="muted">Get the ZIP below and unzip it.</span></li>
+        <li><b>Developer mode</b><span class="muted">Open <code>chrome://extensions</code> and switch on Developer mode, top right.</span></li>
+        <li><b>Load unpacked</b><span class="muted">Click “Load unpacked” and choose the unzipped folder.</span></li>
+        <li><b>Pin it</b><span class="muted">Pin DK Rug Scan from the puzzle icon. To update, download again and press ↻.</span></li>
+      </ol>
+      <div class="cta-row">
+        <a class="btn btn-red" href="https://github.com/realinktattooherning/AP-COIN-CHECK-/archive/refs/heads/main.zip">Download the extension (ZIP)</a>
+        <a class="btn btn-ghost" href="app.html">Open the scanner on its own</a>
+      </div>
+    </div>
+  </section>
+      </div>
+      <div class="hub-panel" id="p-finder" data-panel="finder" hidden>
+  <section class="section" id="paper" aria-labelledby="paper-title">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow"><span class="red">●</span> Live paper trading · simulated · updated about every 30 min</p>
+        <h2 class="h2" id="paper-title">The bot trades on paper.<br><span class="red">You watch.</span></h2>
+        <p class="lede">A robot on GitHub runs the radar around the clock, scans new Solana coins with this exact scanner and opens a $100 paper position when a coin scores 6/10 or more. It follows the same pool it bought on and closes at +100%, −50%, after 24 hours, or at −100% if the liquidity is pulled. 2% is taken off every trade for fees and slippage.</p>
+      </div>
+      <div id="paper-stats" class="stats paper-stats"></div>
+      <h3 class="narr-h">Open positions</h3>
+      <ul id="paper-open" class="radar-list"></ul>
+      <h3 class="narr-h">Closed trades</h3>
+      <ul id="paper-closed" class="radar-list"></ul>
+      <p id="paper-updated" class="fine"></p>
+      <p class="fine">Paper only: no wallet, no real orders. Prices are DexScreener quotes, not fills you could have got. A good paper result is not a promise of anything; a loss here is the scanner being wrong, and it stays on the page.</p>
+    </div>
+  </section>
+  <section class="section" id="radar" hidden aria-labelledby="radar-title">
+    <div class="wrap">
+      <p class="eyebrow"><span class="red">●</span> Live while this page is open</p>
+      <h2 id="radar-title">Radar</h2>
+      <p class="lede">Every 2 minutes the radar pulls new Solana coins from DexScreener (new profiles, boosts, takeovers) and GeckoTerminal (new and trending pools). Coins that pass the screener (graduated, market cap over $50K, under a day old, more volume than market cap, not more sells than buys) get the full scan. Only coins scoring 6/10 or more are listed. Each shows when it was scanned, so you know how fresh the score is. The list starts over every 24 hours.</p>
+      <div class="radar-bar">
+        <button id="radar-toggle" class="btn btn-ghost" type="button">Pause radar</button>
+        <span id="radar-stat" class="mono muted" aria-live="polite"></span>
+      </div>
+      <h3 class="narr-h">Coins scoring 6/10 or more</h3>
+      <ul id="radar-list" class="radar-list"></ul>
+      <div id="watch" class="watch">
+        <h3>Wallet Watch</h3>
+        <p class="muted">Follow wallets you trust. Every sweep the radar reads what they hold; when 2 or more of them pick up the same coin within an hour, you get an alert here and the coin is scanned first. Read-only: it only looks at public balances, it never connects to a wallet.</p>
+        <form id="watch-form" class="scan-row" autocomplete="off">
+          <input id="watch-addr" placeholder="Wallet address, then an optional name" spellcheck="false" aria-label="Wallet address to follow">
+          <button class="btn btn-ghost" type="submit">Follow wallet</button>
+        </form>
+        <ul id="watch-alerts" class="radar-list"></ul>
+        <details class="adv"><summary>Followed wallets</summary><ul id="watch-list" class="watch-list"></ul></details>
+      </div>
+      <p class="fine">A listed coin is a coin to look at, not a coin to buy. Rescan before you do anything, and check the meme and the hype yourself. Not financial advice.</p>
+    </div>
+  </section>
+      </div>
+    </div>
+  </section>
+
 </main>
 
 <footer class="foot">
@@ -317,7 +373,9 @@
 
 <script src="resolve.js"></script>
 <script src="checker.js"></script>
+<script src="jelly.js"></script>
 <script src="stage.js"></script>
+<script src="hub.js"></script>
 <script src="site.js"></script>
 </body>
 </html>

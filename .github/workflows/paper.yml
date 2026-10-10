@@ -1,0 +1,46 @@
+# Live paper trading for the website: every ~30 min, scored with the site's own scanner. Simulated only.
+# Data goes to the branch `paper-data` (one commit, replaced each run) so `main` stays clean; the site reads it live.
+name: Paper trading
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: paper
+  cancel-in-progress: false
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: site
+      - name: Load paper state
+        run: |
+          git clone --depth 1 --branch paper-data "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" data \
+            || { mkdir data && echo "first run: no paper-data branch yet"; }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install headless browser
+        working-directory: site/paper
+        run: |
+          npm init -y > /dev/null
+          npm install --no-audit --no-fund playwright@1.48.2
+          npx playwright install --with-deps chromium
+      - name: Run paper trader
+        run: node site/paper/run.mjs site data/state.json
+      - name: Publish to paper-data
+        working-directory: data
+        run: |
+          rm -rf .git
+          git init -q -b paper-data
+          git config user.name "dk-paper-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add state.json
+          git commit -qm "paper state $(date -u +%FT%TZ)"
+          # this branch only holds the latest state; replacing it keeps the repo small (the one allowed force-push)
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:paper-data
