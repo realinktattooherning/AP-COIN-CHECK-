@@ -1,2 +1,4 @@
 dist/
 _metadata/
+# test screenshots
+/*.png
