@@ -333,3 +333,41 @@ html.ext .rep-body { grid-template-columns: 1fr }
 .radar-why { flex-basis: 100%; font-size: 13.5px }
 .radar-act { display: flex; flex-wrap: wrap; gap: 8px; align-items: center }
 .radar-act .btn { padding: 8px 12px; font-size: 13px }
+
+/* ---------- scan crew (one robot per group of checks) ---------- */
+.crew { display: grid; gap: 12px }
+.crew-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 10px }
+.bot { --c: var(--na); position: relative; display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 4px 12px; padding: 12px 14px; border-radius: var(--radius);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--c) 9%, var(--slate-2)), var(--slate-2)); border: 1px solid color-mix(in srgb, var(--c) 40%, var(--rule)); overflow: hidden }
+.b-GRN { --c: var(--go) } .b-YEL { --c: var(--hold) } .b-RED { --c: var(--stop) } .b-NA { --c: var(--fog) } .b-BUSY { --c: #6FA8FF } .b-SKIP { --c: var(--na) }
+.bot-face svg { width: 44px; height: 44px; display: block }
+.bot-head { fill: var(--ink-2); stroke: var(--c); stroke-width: 2 }
+.bot-ant, .bot-mouth { stroke: var(--c); stroke-width: 2; stroke-linecap: round; fill: none }
+.bot-ant-tip, .bot-eyes rect { fill: var(--c) }
+.b-RED .bot-mouth { d: path("M15 28c3-3 7-3 10 0") }
+.b-GRN .bot-mouth { d: path("M15 26c3 3 7 3 10 0") }
+.bot-txt { display: grid; gap: 1px; min-width: 0 }
+.bot-txt b { font: 700 13px var(--mono); font-stretch: 87.5%; letter-spacing: .06em; text-transform: uppercase }
+.bot-job { font-size: 12.5px; color: var(--fog) }
+.bot-line { font-size: 13.5px; color: var(--frost); overflow-wrap: anywhere }
+.b-RED .bot-line { color: var(--stop) } .b-YEL .bot-line { color: var(--hold) } .b-GRN .bot-line { color: var(--go) }
+.bot-ticks { grid-column: 1 / -1; display: flex; gap: 3px; margin-top: 6px }
+.tick { flex: 1; height: 5px; border-radius: 3px; background: var(--na) }
+.tick.s-GRN { background: var(--go) } .tick.s-YEL { background: var(--hold) } .tick.s-RED { background: var(--stop) } .tick.s-INFO { background: var(--rule-2) }
+.tick.s-BUSY { background: linear-gradient(90deg, transparent, #6FA8FF, transparent); background-size: 200% 100%; animation: tickscan 1.1s linear infinite }
+.b-BUSY::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgba(111, 168, 255, .12) 50%, transparent 70%); background-size: 250% 100%; animation: sweep 1.6s linear infinite; pointer-events: none }
+.b-BUSY .bot-eyes { animation: look 1.2s ease-in-out infinite alternate }
+.b-BUSY .bot-ant-tip { animation: blink .7s steps(2) infinite }
+@keyframes tickscan { from { background-position: 100% 0 } to { background-position: -100% 0 } }
+@keyframes sweep { from { background-position: 150% 0 } to { background-position: -100% 0 } }
+@keyframes look { from { transform: translateX(-3px) } to { transform: translateX(3px) } }
+@keyframes blink { 50% { opacity: .2 } }
+@media (prefers-reduced-motion: reduce) { .b-BUSY::after, .b-BUSY .bot-eyes, .b-BUSY .bot-ant-tip, .tick.s-BUSY { animation: none } }
+
+/* ---------- wallet watch ---------- */
+.watch { margin-top: 28px; display: grid; gap: 12px }
+.watch .muted { margin: 0; font-size: 14.5px }
+.watch-hit { border-color: color-mix(in srgb, var(--hold) 45%, var(--rule)) }
+.watch-list { list-style: none; padding: 0; margin: 8px 0 0; display: grid; gap: 8px }
+.watch-list li { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center }
+.watch-list .btn { padding: 6px 10px; font-size: 12.5px }

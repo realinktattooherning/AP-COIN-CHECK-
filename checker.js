@@ -385,6 +385,27 @@ async function copyCheck(mint, pair, rc, add) {
     "red: an older coin with the same name on the same chain has ≥2× the liquidity and more volume (you'd be buying the copy)");
 }
 
+// V25 (Dev Dossier, ridark_eth): the creator wallet's other pump.fun launches; a serial launcher whose coins all die is a rug farm
+async function devCheck(mint, rc, add) {
+  const R = "V25 Dev history (past launches)";
+  // pump.fun's own creator first: Rugcheck's "creator" can be another wallet (update authority)
+  const pf = await req(`https://frontend-api-v3.pump.fun/coins-v2/${mint}`, null, 1).catch(() => null);
+  const creator = (pf && pf.creator) || (rc || {}).creator;
+  if (!creator) return add(R, NA, "creator unknown", "Rugcheck had no creator wallet");
+  let d;
+  try { d = await req(`https://frontend-api-v3.pump.fun/coins-v2/user-created-coins/${creator}?offset=0&limit=50&includeNsfw=true`, null, 2); }
+  catch { return add(R, NA, "pump.fun did not answer", "pump.fun blocks websites; the Chrome extension and coin.py can read it"); }
+  const others = (d.coins || []).filter(c => c.mint !== mint);
+  const total = Math.max(others.length, (d.count || 0) - 1);
+  const mcOf = c => c.market_cap_usd ?? c.usd_market_cap ?? 0;
+  const dead = others.filter(c => mcOf(c) < 10e3).length;
+  const best = Math.max(0, ...others.map(c => c.ath_market_cap || 0));
+  if (!total) return add(R, GRN, "first launch from this wallet", "no earlier pump.fun coins (a fresh wallet can still be a burner)");
+  add(R, total >= 5 && dead >= 0.8 * others.length ? RED : total >= 2 && dead === others.length ? YEL : GRN,
+    `${total} earlier launches, ${dead} of ${others.length} now under $10K · best ATH ${fmt(best)}`,
+    "red: ≥5 launches and ≥80% of them dead = serial launcher");
+}
+
 async function launchPool(mint, dex, best) {
   // The pump.fun bonding-curve pool holds the real launch candles; DexScreener drops it after migration, GeckoTerminal keeps it
   try {
@@ -769,18 +790,20 @@ async function analyze(addr, draw, log) {
 
     if (chain === "solana") {
       baseChecks(rc, pair, add);
-      pending = new Set(["V18 wallets", ...(pair.pairAddress ? ["V19 copycats", "V1/V6 launch candles", "V3 trades", "V5 fees", "V17 socials", "V9 ATH"] : [])]);
+      pending = new Set(["V18 wallets", "V25 dev history", ...(pair.pairAddress ? ["V19 copycats", "V1/V6 launch candles", "V3 trades", "V5 fees", "V17 socials", "V9 ATH"] : [])]);
       show();
       const created = ((dex && dex.pairs) || []).map(p => p.pairCreatedAt).filter(Boolean);
       const launchMs = created.length ? Math.min(...created) : pair.pairCreatedAt;
       const histRpcs = [...new Set([rpc[0], ...HISTORY_RPCS].filter(u => u && !u.includes("publicnode")))];
       const v18 = walletCheck(rc, launchMs, add, histRpcs).then(() => { pending.delete("V18 wallets"); show(); });
+      const v25 = devCheck(addr, rc, add).then(() => { pending.delete("V25 dev history"); show(); });
+      if (!pair.pairAddress) await v25;
       if (!pair.pairAddress) await v18;
       if (pair.pairAddress) {
         const owners = new Set(((rc || {}).topHolders || []).map(h => String(h.owner).toLowerCase()));
         const lpP = launchPool(addr, dex, pair);
         await Promise.all([
-          v18,
+          v18, v25,
           copyCheck(addr, pair, rc, add).then(() => { pending.delete("V19 copycats"); show(); }),
           lpP.then(lp => candleChecks(lp.pool, add, "solana", pair)).then(() => { pending.delete("V1/V6 launch candles"); show(); }),
           tradeChecks(pair, owners, add).then(tr => { pending.delete("V3 trades"); show(); return feeCheck(tr, pair, rpc, add, addr); })
@@ -823,9 +846,46 @@ const TONE = { RED: "stop", YEL: "hold", GRN: "go", NA: "na", SKIP: "na" };
 const splitRule = rule => { const m = /^(V\d+b?)\s+(.+)$/.exec(rule); return m ? [m[1], m[2]] : ["", rule]; };
 const link = (href, label) => `<a href="${esc(href)}" target="_blank" rel="noopener">${esc(label)}</a>`;
 
+// The scan crew: every check belongs to one "bot", so the report shows who checked what and what each one found
+const CREW = [
+  { name: "Holder bot", job: "Who owns the supply", re: /^(V2|V8|V14|V18) |^Dev\/creator/, pend: /V18/ },
+  { name: "Lock bot", job: "Can the dev cheat you", re: /^(Mint|Freeze|LP|Honeypot|Sell tax|Tokens pulled|Contract|Rugcheck|GoPlus|Security)/, pend: /Security/ },
+  { name: "Chart bot", job: "How the price moved", re: /^(V1|V6|V9|V9b|V20|V21|V23) /, pend: /V1\/V6|V9 ATH/ },
+  { name: "Tape bot", job: "Is the volume real", re: /^(V3|V5|V15|V16) |^Liquidity|^DexScreener/, pend: /V3|V5/ },
+  { name: "Hype bot", job: "Socials, age, copycats", re: /^(V4|V10|V17|V19) /, pend: /V17|V19/ },
+  { name: "Dev bot", job: "The dev's track record", re: /^V25 |^Dev has made/, pend: /V25/ },
+];
+const RANK = { RED: 4, NA: 3, YEL: 2, GRN: 1, SKIP: 0 };
+const BOT_SVG = `<svg viewBox="0 0 40 40" aria-hidden="true"><path class="bot-ant" d="M20 4v6"/><circle class="bot-ant-tip" cx="20" cy="4" r="2.2"/><rect class="bot-head" x="6" y="10" width="28" height="22" rx="7"/><g class="bot-eyes"><rect x="12" y="17" width="5" height="6" rx="2.5"/><rect x="23" y="17" width="5" height="6" rx="2.5"/></g><path class="bot-mouth" d="M15 27h10"/></svg>`;
+
+function crewHtml(rows, pending) {
+  const cards = CREW.map(b => {
+    const mine = rows.filter(r => b.re.test(r.rule));
+    const busy = pending.some(p => b.pend.test(p));
+    const scored = mine.filter(r => !(r.rule.includes("(info)") && r.s === NA) && r.s !== SKIP);
+    // a real check speaks before an "(info)" row
+    const real = scored.filter(r => !r.rule.includes("(info)"));
+    const worst = (real.length ? real : scored).reduce((w, r) => (RANK[r.s] > RANK[w.s] ? r : w), { s: "SKIP" });
+    const st = busy ? "BUSY" : worst.s;
+    const line = busy ? "Checking …"
+      : !scored.length ? "Nothing to check on this coin"
+      : worst.s === GRN ? `All ${scored.length} clear`
+      : `${worst.s === RED ? "Found" : worst.s === NA ? "Couldn't read" : "Warning"}: ${splitRule(worst.rule)[1].replace(" (info)", "")} — ${worst.v}`;
+    return `<li class="bot b-${st}">
+      <span class="bot-face">${BOT_SVG}</span>
+      <span class="bot-txt"><b>${esc(b.name)}</b><span class="bot-job">${esc(b.job)}</span><span class="bot-line">${esc(line)}</span></span>
+      <span class="bot-ticks" aria-hidden="true">${mine.map(r => `<i class="tick s-${r.rule.includes("(info)") ? "INFO" : r.s}" title="${esc(r.rule)}"></i>`).join("")}${busy ? `<i class="tick s-BUSY"></i>` : ""}</span>
+    </li>`;
+  }).join("");
+  const done = CREW.filter(b => !pending.some(p => b.pend.test(p))).length;
+  return `<section class="crew" aria-label="Scan crew">
+    <p class="eyebrow">Scan crew · ${done}/${CREW.length} bots done · ${rows.length} checks</p>
+    <ul class="crew-grid">${cards}</ul></section>`;
+}
+
 function render(addr, name, pair, L, rows, pending = [], chain = "solana") {
   const { buy: b0, reasons, flags } = score(rows);
-  const missing = pending.length ? [] : rows.filter(r => r.s === NA && !r.rule.startsWith("V9"));
+  const missing = pending.length ? [] : rows.filter(r => r.s === NA && !/^V9|^V25/.test(r.rule));
   // an unscanned check must never look like a pass
   const buy = missing.length ? Math.min(b0, 3) : b0;
   const early = !pending.length && !missing.length && tooEarly(rows);
@@ -866,6 +926,7 @@ function render(addr, name, pair, L, rows, pending = [], chain = "solana") {
         <div class="rep-links">${links}</div>
       </div>
     </div>
+    ${crewHtml(rows, pending)}
     ${pending.length ? `<div class="banner"><span class="spinner" aria-hidden="true"></span><p><strong>Still scanning:</strong> ${esc(pending.join(", "))}. The score can only go down from here — don't buy until it finishes.</p></div>` : ""}
     ${missing.length ? `<div class="banner banner-stop"><p><strong>⚠️ INCOMPLETE — ${missing.length} ${missing.length === 1 ? "check was" : "checks were"} not scanned.</strong> Don't buy until ${missing.length === 1 ? "it is" : "they are"} resolved. The score is capped at 3.</p>
       <ul>${missing.map(r => `<li>${esc(r.rule)}: ${esc(r.v)}${r.n ? ` — ${esc(r.n)}` : ""}</li>`).join("")}</ul></div>` : ""}
@@ -1018,7 +1079,7 @@ function radarPrefilter(p) {
 // same final number as the report: an unscanned check caps it at 3, a too-early coin is never a candidate
 function finalScore(rows) {
   const { buy, reasons } = score(rows);
-  const missing = rows.filter(r => r.s === NA && !r.rule.startsWith("V9"));
+  const missing = rows.filter(r => r.s === NA && !/^V9|^V25/.test(r.rule));
   return { buy: missing.length || tooEarly(rows) ? Math.min(buy, 3) : buy, reasons };
 }
 
@@ -1053,6 +1114,7 @@ async function radarTick() {
     try {
       const res = await exclusive(() => analyze(a, () => {}, () => {}));
       const { buy, reasons } = finalScore(res.rows);
+      watchScored(a, buy);
       const s2 = radarLoad();
       s2.scanned++;
       if (buy >= RADAR_MIN) {
@@ -1092,6 +1154,113 @@ function radarDraw(current) {
     </li>`).join("") : `<li class="muted">No coin has scored ${RADAR_MIN}/10 or more yet today. Most new coins don't — that is the point.</li>`;
 }
 
+// ---------- Wallet Watch: follow wallets, alert when 2+ of them pick up the same coin within an hour ----------
+// Reads token balances only (getTokenAccountsByOwner); a mint that newly appears in a wallet counts as a buy.
+const WATCH_KEY = "watch-v1", WATCH_MAX = 25, WATCH_WINDOW = 60 * 60e3, WATCH_MIN = 2;
+const TOKEN_PROGS = ["TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA", "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"];
+const NOT_COINS = new Set(["So11111111111111111111111111111111111111112", "EPjFWdd5AufqSSqeM2qJfjB1n4nuNcxW4Sky85fFfWbF", "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"]);
+
+function watchLoad() {
+  let st = null;
+  try { st = JSON.parse(store.get(WATCH_KEY) || "null"); } catch {}
+  return st || { wallets: [], held: {}, buys: [], alerts: [] };
+}
+const watchSave = st => store.set(WATCH_KEY, JSON.stringify(st));
+
+async function walletMints(owner) {
+  const rpcIn = store.get("rpc");
+  // publicnode and mainnet-beta refuse balance lookups; Helium's free RPC answers them
+  const rpcs = [...new Set([rpcIn && (rpcIn.includes("://") ? rpcIn : "https://" + rpcIn), ...HISTORY_RPCS].filter(Boolean))];
+  const mints = new Set();
+  for (const prog of TOKEN_PROGS) {
+    let ok = false;
+    for (const url of rpcs) {
+      try {
+        const r = await reqRaw(url, { jsonrpc: "2.0", id: 1, method: "getTokenAccountsByOwner", params: [owner, { programId: prog }, { encoding: "jsonParsed" }] }, 2);
+        if (!r.result) continue;
+        for (const a of r.result.value) {
+          const i = a.account.data.parsed.info;
+          if (Number(i.tokenAmount.uiAmount) > 0 && !NOT_COINS.has(i.mint)) mints.add(i.mint);
+        }
+        ok = true; break;
+      } catch {}
+    }
+    if (!ok) return null;
+  }
+  return mints;
+}
+
+async function watchTick() {
+  const st = watchLoad();
+  if (!st.wallets.length) return;
+  const now = Date.now();
+  for (const w of st.wallets) {
+    const mints = await walletMints(w.addr);
+    if (!mints) continue;
+    const before = st.held[w.addr];
+    // the first look is a baseline: what a wallet already holds is not a new buy
+    if (before) for (const m of mints) if (!before.includes(m)) st.buys.push({ mint: m, wallet: w.addr, at: now });
+    st.held[w.addr] = [...mints];
+  }
+  st.buys = st.buys.filter(b => now - b.at < 24 * 3600e3);
+  const byMint = {};
+  for (const b of st.buys) (byMint[b.mint] = byMint[b.mint] || []).push(b);
+  for (const [mint, bs] of Object.entries(byMint)) {
+    const recent = bs.filter(b => now - b.at < WATCH_WINDOW);
+    const wallets = [...new Set(recent.map(b => b.wallet))];
+    if (wallets.length < WATCH_MIN) continue;
+    let al = st.alerts.find(a => a.mint === mint);
+    if (!al) {
+      al = { mint, at: now, wallets: [], sym: "", mc: 0 };
+      st.alerts.push(al);
+    }
+    al.wallets = [...new Set([...al.wallets, ...wallets])];
+  }
+  const need = st.alerts.filter(a => !a.sym).map(a => a.mint).slice(0, 30);
+  if (need.length) {
+    try {
+      for (const p of await reqRaw(`https://api.dexscreener.com/tokens/v1/solana/${need.join(",")}`, null, 2)) {
+        const al = st.alerts.find(a => a.mint === (p.baseToken || {}).address);
+        if (al && !al.sym) { al.sym = p.baseToken.symbol; al.mc = p.marketCap || p.fdv || 0; al.url = p.url || ""; al.liq = (p.liquidity || {}).usd || 0; }
+      }
+    } catch { return watchSave(st); }
+    // airdropped spam and stablecoins are not buys: only a coin with a real pool becomes an alert
+    for (const a of st.alerts.filter(a => need.includes(a.mint))) {
+      a.ok = !!a.sym && a.mc >= 10e3 && a.mc <= 50e6 && (a.liq || 0) >= 5e3;
+      a.sym = a.sym || "-";
+      // a cluster skips the screener and goes to the front of the scan line
+      if (a.ok && !RADAR.queue.includes(a.mint)) RADAR.queue.unshift(a.mint);
+    }
+  }
+  st.alerts = st.alerts.filter(a => now - a.at < 24 * 3600e3);
+  watchSave(st);
+}
+
+function watchScored(mint, buy) {
+  const st = watchLoad();
+  const al = st.alerts.find(a => a.mint === mint);
+  if (al) { al.buy = buy; watchSave(st); }
+}
+
+function watchDraw() {
+  if (!$("watch-list")) return;
+  const st = watchLoad();
+  $("watch-list").innerHTML = st.wallets.length ? st.wallets.map(w => `
+    <li><span class="mono">${esc(w.label || w.addr.slice(0, 4) + "…" + w.addr.slice(-4))}</span><code class="radar-ca">${esc(w.addr)}</code>
+      <button class="btn btn-ghost" type="button" data-unwatch="${esc(w.addr)}">Remove</button></li>`).join("")
+    : `<li class="muted">No wallets yet. Add the wallets of traders you trust (from early.py, a tracker or a caller you checked).</li>`;
+  const al = st.alerts.filter(a => a.ok).sort((x, y) => y.at - x.at);
+  $("watch-alerts").innerHTML = al.map(a => `
+    <li class="radar-hit watch-hit">
+      <span class="verdict-tag v-${a.buy == null ? "hold" : a.buy >= 7 ? "go" : a.buy >= 4 ? "hold" : "stop"}">${a.buy == null ? "scanning" : a.buy + "/10"}</span>
+      <b>🔔 ${a.wallets.length} wallets bought $${esc(a.sym || a.mint.slice(0, 6))}</b>
+      <span class="mono muted">${a.mc ? fmt(a.mc) + " MC" : ""}</span>
+      <span class="radar-age${Date.now() - a.at > 3600e3 ? " old" : ""}">${ago(a.at)}</span>
+      <code class="radar-ca">${esc(a.mint)}</code>
+      <span class="radar-act"><button class="btn btn-ghost" type="button" data-scan="${esc(a.mint)}">Scan</button><button class="btn btn-ghost" type="button" data-copy="${esc(a.mint)}">Copy CA</button>${a.url ? link(a.url, "Chart") : ""}</span>
+    </li>`).join("");
+}
+
 if ($("radar") && !IS_POPUP) {
   $("radar").hidden = false;
   RADAR.paused = store.get("radar-paused") === "1";
@@ -1116,10 +1285,32 @@ if ($("radar") && !IS_POPUP) {
     running = true;
     while (!RADAR.paused) {
       const t0 = Date.now();
+      await watchTick().catch(() => {});
+      watchDraw();
       await radarTick().catch(() => {});
       await sleep(Math.max(5e3, RADAR_EVERY - (Date.now() - t0)));
     }
     running = false;
+  }
+  const wl = $("watch-form");
+  if (wl) {
+    wl.addEventListener("submit", e => {
+      e.preventDefault();
+      const [addr, ...lab] = $("watch-addr").value.trim().split(/\s+/);
+      if (!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(addr || "")) { $("watch-addr").value = ""; $("watch-addr").placeholder = "That is not a Solana wallet address"; return; }
+      const st = watchLoad();
+      if (st.wallets.length >= WATCH_MAX) return;
+      if (!st.wallets.some(w => w.addr === addr)) st.wallets.push({ addr, label: lab.join(" ") });
+      watchSave(st); $("watch-addr").value = ""; watchDraw();
+    });
+    $("watch").addEventListener("click", e => {
+      const t = e.target.closest("button");
+      if (!t) return;
+      if (t.dataset.unwatch) { const st = watchLoad(); st.wallets = st.wallets.filter(w => w.addr !== t.dataset.unwatch); delete st.held[t.dataset.unwatch]; watchSave(st); watchDraw(); }
+      if (t.dataset.scan) { start(t.dataset.scan); $("scanner").scrollIntoView({ behavior: "smooth" }); }
+      if (t.dataset.copy) navigator.clipboard.writeText(t.dataset.copy).then(() => { t.textContent = "Copied"; });
+    });
+    watchDraw();
   }
   radarDraw();
   setInterval(() => { if (!RADAR.scanning) radarDraw(); }, 30e3);

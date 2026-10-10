@@ -97,6 +97,16 @@
         <span id="radar-stat" class="mono muted" aria-live="polite"></span>
       </div>
       <ul id="radar-list" class="radar-list"></ul>
+      <div id="watch" class="watch">
+        <h3>Wallet Watch</h3>
+        <p class="muted">Follow wallets you trust. Every sweep the radar reads what they hold; when 2 or more of them pick up the same coin within an hour, you get an alert here and the coin is scanned first. Read-only: it only looks at public balances, it never connects to a wallet.</p>
+        <form id="watch-form" class="scan-row" autocomplete="off">
+          <input id="watch-addr" placeholder="Wallet address, then an optional name" spellcheck="false" aria-label="Wallet address to follow">
+          <button class="btn btn-ghost" type="submit">Follow wallet</button>
+        </form>
+        <ul id="watch-alerts" class="radar-list"></ul>
+        <details class="adv"><summary>Followed wallets</summary><ul id="watch-list" class="watch-list"></ul></details>
+      </div>
       <p class="fine">A listed coin is a coin to look at, not a coin to buy. Rescan before you do anything, and check the meme and the hype yourself. Not financial advice.</p>
     </div>
   </section>
