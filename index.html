@@ -87,6 +87,20 @@
     <section id="out" class="report" hidden aria-live="polite" aria-label="Scan report"></section>
   </div>
 
+  <section class="section" id="radar" hidden aria-labelledby="radar-title">
+    <div class="wrap">
+      <p class="eyebrow"><span class="red">●</span> Live while this page is open</p>
+      <h2 id="radar-title">Radar</h2>
+      <p class="lede">Every 2 minutes the radar pulls new Solana coins from DexScreener (new profiles, boosts, takeovers) and GeckoTerminal (new and trending pools). Coins that pass the screener (graduated, market cap over $50K, under a day old, more volume than market cap, not more sells than buys) get the full scan. Only coins scoring 6/10 or more are listed. Each shows when it was scanned, so you know how fresh the score is. The list starts over every 24 hours.</p>
+      <div class="radar-bar">
+        <button id="radar-toggle" class="btn btn-ghost" type="button">Pause radar</button>
+        <span id="radar-stat" class="mono muted" aria-live="polite"></span>
+      </div>
+      <ul id="radar-list" class="radar-list"></ul>
+      <p class="fine">A listed coin is a coin to look at, not a coin to buy. Rescan before you do anything, and check the meme and the hype yourself. Not financial advice.</p>
+    </div>
+  </section>
+
   <section class="section" id="checks" aria-labelledby="checks-title">
     <div class="wrap">
       <div class="section-head">

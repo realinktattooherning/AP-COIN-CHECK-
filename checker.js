@@ -689,18 +689,36 @@ function score(rows) {
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
 let firstRender = false;
+// one analysis at a time: CUR_MINT and getCache are shared, so the radar and a manual scan take turns
+let busy = Promise.resolve();
+const exclusive = fn => { const p = busy.then(fn, fn); busy = p.catch(() => {}); return p; };
+let userWaiting = 0;
 
 async function run(addr) {
-  getCache.clear();
-  firstRender = true;
-  CUR_MINT = addr;
   $("go").disabled = true; $("go").classList.add("busy"); $("log").textContent = ""; $("out").hidden = true;
-  const rpcIn = $("rpc").value.trim();
-  store.set("rpc", rpcIn);
+  if ($("rpc")) store.set("rpc", $("rpc").value.trim());
+  userWaiting++;
+  if (RADAR && RADAR.scanning) log("Radar is finishing one coin first …");
+  try {
+    await exclusive(() => { firstRender = true; return analyze(addr, render, log); });
+    log("Done.");
+  } catch (e) {
+    log("ERROR: " + e.message);
+  } finally {
+    userWaiting--;
+    $("go").disabled = false; $("go").classList.remove("busy");
+  }
+}
+
+// every check for one coin; draw(addr, name, pair, L, rows, pending, chain) is called as rows arrive
+async function analyze(addr, draw, log) {
+  getCache.clear();
+  CUR_MINT = addr;
+  const rpcIn = store.get("rpc");
   const rpc = [rpcIn && (rpcIn.includes("://") ? rpcIn : "https://" + rpcIn), ...PUBLIC_RPCS].filter(Boolean);
   const rows = [];
   const add = (rule, s, v, n = "") => rows.push({ rule, s, v, n });
-  try {
+  {
     const evmAddr = EVM_ADDR.test(addr);
     log("Fetching data …");
     const [dex, rc] = await Promise.all([
@@ -713,7 +731,7 @@ async function run(addr) {
     const name = (pair.baseToken || {}).symbol || ((rc || {}).tokenMeta || {}).symbol || addr;
     let L = { twitter: null };
     let pending = new Set();
-    const show = () => render(addr, name, pair, L, rows, [...pending], chain);
+    const show = () => draw(addr, name, pair, L, rows, [...pending], chain);
     const setV17 = () => {
       const found = ["twitter", "website", "telegram"].filter(k => L[k]);
       const i17 = rows.findIndex(r => r.rule.startsWith("V17"));
@@ -786,11 +804,7 @@ async function run(addr) {
       if (pair.pairAddress) add("Security data", NA, `not available for ${chain}`, "honeypot, mint, holders and LP can't be checked on this chain");
     }
     show();
-    log("Done.");
-  } catch (e) {
-    log("ERROR: " + e.message);
-  } finally {
-    $("go").disabled = false; $("go").classList.remove("busy");
+    return { addr, name, pair, rows };
   }
 }
 
@@ -957,4 +971,148 @@ else if (IS_POPUP && $("tab")) {
     $("tab").hidden = false;
     $("tab").onclick = () => start(c.addr);
   }).catch(() => {});
+}
+
+// ---------- Radar: finds fresh Solana coins on its own and keeps the ones scoring ≥ 6/10 ----------
+// Only runs while the landing page is open. Every coin shows when it was scanned; the whole list starts over after 24 h.
+const RADAR_KEY = "radar-v1", RADAR_DAY = 24 * 3600e3, RADAR_EVERY = 2 * 60e3, RADAR_MIN = 6;
+// discovery feeds; GeckoTerminal ids look like "solana_<mint>"
+const RADAR_FEEDS = [
+  ["DexScreener new profiles", "https://api.dexscreener.com/token-profiles/latest/v1", d => d.filter(x => x.chainId === "solana").map(x => x.tokenAddress)],
+  ["DexScreener boosts", "https://api.dexscreener.com/token-boosts/latest/v1", d => d.filter(x => x.chainId === "solana").map(x => x.tokenAddress)],
+  ["DexScreener top boosts", "https://api.dexscreener.com/token-boosts/top/v1", d => d.filter(x => x.chainId === "solana").map(x => x.tokenAddress)],
+  ["DexScreener takeovers", "https://api.dexscreener.com/community-takeovers/latest/v1", d => d.filter(x => x.chainId === "solana").map(x => x.tokenAddress)],
+  ["GeckoTerminal new pools", "https://api.geckoterminal.com/api/v2/networks/solana/new_pools?page=1", d => d.data.map(p => p.relationships.base_token.data.id.slice(7))],
+  ["GeckoTerminal trending", "https://api.geckoterminal.com/api/v2/networks/solana/trending_pools?page=1&duration=1h", d => d.data.map(p => p.relationships.base_token.data.id.slice(7))],
+];
+var RADAR = { scanning: false, timer: null, queue: [], note: "" };
+
+function radarLoad() {
+  let st = null;
+  try { st = JSON.parse(store.get(RADAR_KEY) || "null"); } catch {}
+  if (!st || Date.now() - st.start > RADAR_DAY) st = { start: Date.now(), seen: {}, hits: [], scanned: 0, passed: 0 };
+  return st;
+}
+const radarSave = st => store.set(RADAR_KEY, JSON.stringify(st));
+
+// cheap screen before the full scan (the checklist's screener): graduated, MC ≥ $50K, ≤ 1 day old, and not already a hard no on V15/V16
+function radarPrefilter(p) {
+  const mc = p.marketCap || p.fdv || 0, t = (p.txns || {}).h1 || {};
+  if (isCurve(p)) return "still on the bonding curve";
+  if (mc < 50e3) return "MC under $50K";
+  if (!p.pairCreatedAt || Date.now() - p.pairCreatedAt > RADAR_DAY) return "older than 1 day";
+  if (mc > ((p.volume || {}).h24 || 0)) return "MC over 24h volume";
+  if ((t.sells || 0) > (t.buys || 0) * 1.1) return "more sells than buys";
+  return "";
+}
+
+// same final number as the report: an unscanned check caps it at 3, a too-early coin is never a candidate
+function finalScore(rows) {
+  const { buy, reasons } = score(rows);
+  const missing = rows.filter(r => r.s === NA && !r.rule.startsWith("V9"));
+  return { buy: missing.length || tooEarly(rows) ? Math.min(buy, 3) : buy, reasons };
+}
+
+async function radarTick() {
+  const st = radarLoad();
+  const found = new Set();
+  for (const [, url, pick] of RADAR_FEEDS) {
+    try { pick(await reqRaw(url, null, 2)).forEach(a => a && found.add(a)); } catch {}
+  }
+  const fresh = [...found].filter(a => !st.seen[a] && !RADAR.queue.includes(a));
+  // DexScreener takes 30 tokens per call
+  for (let i = 0; i < fresh.length; i += 30) {
+    let pairs = [];
+    try { pairs = await reqRaw(`https://api.dexscreener.com/tokens/v1/solana/${fresh.slice(i, i + 30).join(",")}`, null, 2); } catch { continue; }
+    for (const a of fresh.slice(i, i + 30)) {
+      const own = pairs.filter(p => p.baseToken && p.baseToken.address === a);
+      st.seen[a] = Date.now();
+      if (!own.length) continue;
+      const best = own.reduce((x, y) => (((y.liquidity || {}).usd || 0) > ((x.liquidity || {}).usd || 0) ? y : x));
+      if (!radarPrefilter(best)) RADAR.queue.push(a);
+    }
+  }
+  st.passed += RADAR.queue.length;
+  radarSave(st);
+  RADAR.note = `${found.size} coins found · ${RADAR.queue.length} passed the screener`;
+  radarDraw();
+  while (RADAR.queue.length && !RADAR.paused) {
+    // a manual scan goes first
+    while (userWaiting) await sleep(1000);
+    const a = RADAR.queue.shift();
+    RADAR.scanning = true; radarDraw(a);
+    try {
+      const res = await exclusive(() => analyze(a, () => {}, () => {}));
+      const { buy, reasons } = finalScore(res.rows);
+      const s2 = radarLoad();
+      s2.scanned++;
+      if (buy >= RADAR_MIN) {
+        s2.hits = s2.hits.filter(h => h.addr !== a);
+        s2.hits.push({ addr: a, sym: (res.pair.baseToken || {}).symbol || a.slice(0, 6), buy, mc: res.pair.marketCap || res.pair.fdv || 0,
+          at: Date.now(), why: reasons.slice(0, 2), url: res.pair.url || "" });
+      }
+      radarSave(s2);
+    } catch {}
+    RADAR.scanning = false; radarDraw();
+  }
+}
+
+function ago(ms) {
+  const m = Math.round((Date.now() - ms) / 60e3);
+  return m < 1 ? "just now" : m < 60 ? `${m} min ago` : `${Math.floor(m / 60)} h ${m % 60} min ago`;
+}
+
+function radarDraw(current) {
+  const box = $("radar-list");
+  if (!box) return;
+  const st = radarLoad();
+  const left = Math.max(0, RADAR_DAY - (Date.now() - st.start));
+  $("radar-stat").textContent = [RADAR.paused ? "Paused" : current ? "Scanning " + current.slice(0, 6) + "…" : "Waiting for the next sweep",
+    `${st.scanned} fully scanned today`, `${RADAR.queue.length} in line`, RADAR.note,
+    `list resets in ${Math.floor(left / 3600e3)} h ${Math.floor(left % 3600e3 / 60e3)} min`].filter(Boolean).join(" · ");
+  const hits = [...st.hits].sort((x, y) => y.at - x.at);
+  box.innerHTML = hits.length ? hits.map(h => `
+    <li class="radar-hit">
+      <span class="verdict-tag v-${h.buy >= 7 ? "go" : "hold"}">${h.buy}/10</span>
+      <b>$${esc(h.sym)}</b>
+      <span class="mono muted">${fmt(h.mc)} MC</span>
+      <span class="radar-age${Date.now() - h.at > 3600e3 ? " old" : ""}" title="${esc(new Date(h.at).toLocaleString())}">scanned ${ago(h.at)}</span>
+      <code class="radar-ca">${esc(h.addr)}</code>
+      <span class="radar-why muted">${esc(h.why.join(" · "))}</span>
+      <span class="radar-act"><button class="btn btn-ghost" type="button" data-scan="${esc(h.addr)}">Rescan</button><button class="btn btn-ghost" type="button" data-copy="${esc(h.addr)}">Copy CA</button>${h.url ? link(h.url, "Chart") : ""}</span>
+    </li>`).join("") : `<li class="muted">No coin has scored ${RADAR_MIN}/10 or more yet today. Most new coins don't — that is the point.</li>`;
+}
+
+if ($("radar") && !IS_POPUP) {
+  $("radar").hidden = false;
+  RADAR.paused = store.get("radar-paused") === "1";
+  const btn = $("radar-toggle");
+  const label = () => { btn.textContent = RADAR.paused ? "Start radar" : "Pause radar"; };
+  label();
+  btn.onclick = () => {
+    RADAR.paused = !RADAR.paused;
+    store.set("radar-paused", RADAR.paused ? "1" : "");
+    label(); radarDraw();
+    if (!RADAR.paused) loop();
+  };
+  $("radar-list").addEventListener("click", e => {
+    const t = e.target.closest("button");
+    if (!t) return;
+    if (t.dataset.scan) { start(t.dataset.scan); $("scanner").scrollIntoView({ behavior: "smooth" }); }
+    if (t.dataset.copy) navigator.clipboard.writeText(t.dataset.copy).then(() => { t.textContent = "Copied"; });
+  });
+  let running = false;
+  async function loop() {
+    if (running) return;
+    running = true;
+    while (!RADAR.paused) {
+      const t0 = Date.now();
+      await radarTick().catch(() => {});
+      await sleep(Math.max(5e3, RADAR_EVERY - (Date.now() - t0)));
+    }
+    running = false;
+  }
+  radarDraw();
+  setInterval(() => { if (!RADAR.scanning) radarDraw(); }, 30e3);
+  if (!RADAR.paused) loop();
 }

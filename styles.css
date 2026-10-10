@@ -321,3 +321,15 @@ html.ext .rep-body { grid-template-columns: 1fr }
 @media (min-width: 901px) { .why { position: sticky; top: 84px; align-self: start } html.ext .why { position: static } }
 .reel-why { margin: -4px 0 0; color: var(--mist); font-size: 14px }
 .app .app-home { padding: 9px 14px; font-size: 13.5px }
+
+/* ---------- radar ---------- */
+.radar-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 18px 0 }
+.radar-bar .mono { font-size: 12px }
+.radar-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px }
+.radar-hit { background: var(--slate); border: 1px solid var(--rule); border-radius: var(--radius); padding: 14px 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; min-width: 0 }
+.radar-age { font: 500 12px var(--mono); color: var(--go) }
+.radar-age.old { color: var(--hold) }
+.radar-ca { flex-basis: 100%; font: 12px var(--mono); color: var(--mist); overflow-wrap: anywhere }
+.radar-why { flex-basis: 100%; font-size: 13.5px }
+.radar-act { display: flex; flex-wrap: wrap; gap: 8px; align-items: center }
+.radar-act .btn { padding: 8px 12px; font-size: 13px }
