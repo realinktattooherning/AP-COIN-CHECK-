@@ -642,7 +642,7 @@ async function evmChecks(addr, c, add) {
   return new Set((gp.holders || []).map(h => h.address.toLowerCase()));
 }
 
-function athFrom(a, rows) {
+function athFrom(a, rows, pair = {}) {
   if (!a) return;
   const dd = 1 - a.now / a.ath;
   const i9 = rows.findIndex(r => r.rule.startsWith("V9 Momentum"));
@@ -652,6 +652,15 @@ function athFrom(a, rows) {
     : dd > 0.9 ? [YEL, "over 90% down: the narrative is probably dead"]
     : [GRN, "between the top and the 70% zone: wait"];
   rows.splice(i9 + 1, 0, { rule: "V21 70% rule (drop from ATH)", s, v: `${(dd * 100).toFixed(0)}% below ATH (${fmt(a.ath)})`, n });
+  // V23 (iiamjeph): after a top, falling volume or a coin past the 3-4 day meme life cycle = the top is probably in
+  if (dd >= 0.3) {
+    const v = pair.volume || {}, pace = v.h24 ? (v.h6 || 0) / 6 / (v.h24 / 24) : null;
+    const days = pair.pairCreatedAt ? (Date.now() - pair.pairCreatedAt) / 864e5 : null;
+    const dying = pace != null && pace < 0.4, old = days != null && days > 4;
+    rows.splice(i9 + 2, 0, { rule: "V23 Attention after the top (info)", s: dying || old ? YEL : GRN,
+      v: `volume last 6h at ${pace == null ? "?" : (pace * 100).toFixed(0) + "%"} of the 24h pace · ${days == null ? "?" : days.toFixed(1)} days old`,
+      n: dying ? "volume is dying after the top: the meme is probably over" : old ? "past the 3-4 day meme life cycle: a sideways coin rarely comes back" : "volume is holding after the top" });
+  }
 }
 
 // one number for the user: 1-3 don't buy, 4-6 wait, 7-10 buy candidate
@@ -777,7 +786,7 @@ async function analyze(addr, draw, log) {
           tradeChecks(pair, owners, add).then(tr => { pending.delete("V3 trades"); show(); return feeCheck(tr, pair, rpc, add, addr); })
             .then(() => { pending.delete("V5 fees"); show(); }),
           links(addr, pair, rc).then(l => { L = l; setV17(); pending.delete("V17 socials"); show(); return lpP; })
-            .then(lp => athRow(pair, lp.ids.length ? lp.ids : [pair.pairAddress], L)).then(a => { athFrom(a, rows); pending.delete("V9 ATH"); show(); }),
+            .then(lp => athRow(pair, lp.ids.length ? lp.ids : [pair.pairAddress], L)).then(a => { athFrom(a, rows, pair); pending.delete("V9 ATH"); show(); }),
         ]);
       }
     } else if (EVM[chain]) {
@@ -796,7 +805,7 @@ async function analyze(addr, draw, log) {
           .then(() => { pending.delete("V3 trades"); show(); }),
         lpP.then(lp => lp.pool ? candleChecks(lp.pool, add, c.gt, pair) : add("V1 First candle (launch bundle)", NA, "no pools on GeckoTerminal"))
           .then(() => { pending.delete("V1/V6 launch candles"); show(); return lpP; })
-          .then(lp => athRow(pair, lp.ids.length ? lp.ids : [pair.pairAddress], L, c.gt)).then(a => { athFrom(a, rows); pending.delete("V9 ATH"); show(); }),
+          .then(lp => athRow(pair, lp.ids.length ? lp.ids : [pair.pairAddress], L, c.gt)).then(a => { athFrom(a, rows, pair); pending.delete("V9 ATH"); show(); }),
       ]);
     } else {
       baseChecks(null, pair, add, chain);
