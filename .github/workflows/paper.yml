@@ -3,7 +3,7 @@
 name: Paper trading
 on:
   schedule:
-    - cron: "*/30 * * * *"
+    - cron: "13,43 * * * *"   # off the busy :00/:30 slots, where GitHub often skips scheduled runs
   workflow_dispatch:
 permissions:
   contents: write
