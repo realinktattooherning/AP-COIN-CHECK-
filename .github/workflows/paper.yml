@@ -44,7 +44,7 @@ jobs:
             node site/paper/run.mjs site work/state.json || echo "paper run $i failed"
             site/paper/publish.sh "paper state" work/state.json || echo "publish $i failed"
             left=$(( 1800 - ($(date +%s) - start) ))
-            [ "$i" -lt 11 ] && [ "$left" -gt 0 ] && sleep "$left"
+            if [ "$i" -lt 11 ] && [ "$left" -gt 0 ]; then sleep "$left"; fi
           done
       - name: Start the next run
         if: always()
