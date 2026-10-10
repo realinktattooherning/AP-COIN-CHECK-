@@ -406,6 +406,41 @@ async function devCheck(mint, rc, add) {
     "red: ≥5 launches and ≥80% of them dead = serial launcher");
 }
 
+// V26 (iiamjeph): the chart signals a trader reads by eye, on 15-minute candles. Info only; runs on coins without a hard no
+function taSignals(c) {
+  // c: [ts, o, h, l, c, v] oldest first
+  const close = c.map(x => x[4]), high = c.map(x => x[2]);
+  const rsi = [];
+  let g = 0, l = 0;
+  for (let i = 1; i < close.length; i++) {
+    const d = close[i] - close[i - 1], up = Math.max(d, 0), dn = Math.max(-d, 0);
+    if (i <= 14) { g += up / 14; l += dn / 14; } else { g = (g * 13 + up) / 14; l = (l * 13 + dn) / 14; }
+    rsi[i] = i >= 14 ? (l ? 100 - 100 / (1 + g / l) : 100) : null;
+  }
+  const swings = [];
+  for (let i = 3; i < high.length - 2; i++) if (high[i] === Math.max(...high.slice(i - 3, i + 3))) swings.push(i);
+  const [s1, s2] = swings.slice(-2);
+  const lowerHigh = s2 != null && high[s2] < high[s1] * 0.97;
+  const divergence = s2 != null && high[s2] > high[s1] && rsi[s2] != null && rsi[s1] != null && rsi[s2] < rsi[s1] - 3;
+  const ma = close.length >= 50 ? close.slice(-50).reduce((a, b) => a + b) / 50 : null;
+  const belowMa = ma != null && close.at(-1) < ma && Math.max(...close.slice(-60, -10)) > ma * 1.15;
+  const r = rsi.at(-1);
+  return { rsi: r, lowerHigh, divergence, belowMa, hot: r != null && r > 70 };
+}
+
+async function taCheck(pair, add, net = "solana") {
+  const R = "V26 Chart signals (info)";
+  if (!pair.pairAddress) return;
+  let c = [];
+  try { c = (await req(`${gtPools(net)}${pair.pairAddress}/ohlcv/minute?aggregate=15&limit=200&token=${CUR_MINT}`)).data.attributes.ohlcv_list.slice().reverse(); }
+  catch { return add(R, NA, "no 15m candles", "GeckoTerminal did not answer"); }
+  if (c.length < 30) return add(R, NA, `only ${c.length} candles of 15m`, "too young to read the chart");
+  const t = taSignals(c);
+  const bad = [t.hot && "RSI over 70 (overbought)", t.divergence && "bearish divergence (higher high, lower RSI)", t.lowerHigh && "lower high after the last top", t.belowMa && "broke under the 50-candle MA"].filter(Boolean);
+  add(R, bad.length ? YEL : GRN, `RSI ${t.rsi == null ? "?" : t.rsi.toFixed(0)}${bad.length ? " · " + bad.join(" · ") : " · no top signal"}`,
+    bad.length ? "signs the top may be in: take profit or wait" : "15m candles: trend still intact");
+}
+
 async function launchPool(mint, dex, best) {
   // The pump.fun bonding-curve pool holds the real launch candles; DexScreener drops it after migration, GeckoTerminal keeps it
   try {
@@ -835,6 +870,11 @@ async function analyze(addr, draw, log) {
       setV17();
       if (pair.pairAddress) add("Security data", NA, `not available for ${chain}`, "honeypot, mint, holders and LP can't be checked on this chain");
     }
+    if (pair.pairAddress && !rows.some(r => r.s === RED && HARD_NO.some(h => r.rule.startsWith(h)))) {
+      pending = new Set(["V26 chart signals"]); show();
+      await taCheck(pair, add, chain === "solana" ? "solana" : (EVM[chain] || {}).gt || "solana");
+      pending = new Set();
+    }
     show();
     return { addr, name, pair, rows };
   }
@@ -850,7 +890,7 @@ const link = (href, label) => `<a href="${esc(href)}" target="_blank" rel="noope
 const CREW = [
   { name: "Holder bot", job: "Who owns the supply", re: /^(V2|V8|V14|V18) |^Dev\/creator/, pend: /V18/ },
   { name: "Lock bot", job: "Can the dev cheat you", re: /^(Mint|Freeze|LP|Honeypot|Sell tax|Tokens pulled|Contract|Rugcheck|GoPlus|Security)/, pend: /Security/ },
-  { name: "Chart bot", job: "How the price moved", re: /^(V1|V6|V9|V9b|V20|V21|V23) /, pend: /V1\/V6|V9 ATH/ },
+  { name: "Chart bot", job: "How the price moved", re: /^(V1|V6|V9|V9b|V20|V21|V23|V26) /, pend: /V1\/V6|V9 ATH|V26/ },
   { name: "Tape bot", job: "Is the volume real", re: /^(V3|V5|V15|V16) |^Liquidity|^DexScreener/, pend: /V3|V5/ },
   { name: "Hype bot", job: "Socials, age, copycats", re: /^(V4|V10|V17|V19) /, pend: /V17|V19/ },
   { name: "Dev bot", job: "The dev's track record", re: /^V25 |^Dev has made/, pend: /V25/ },
@@ -890,7 +930,7 @@ function crewHtml(rows, pending) {
 
 function render(addr, name, pair, L, rows, pending = [], chain = "solana") {
   const { buy: b0, reasons, flags } = score(rows);
-  const missing = pending.length ? [] : rows.filter(r => r.s === NA && !/^V9|^V25/.test(r.rule));
+  const missing = pending.length ? [] : rows.filter(r => r.s === NA && !/^V9|^V25|^V26/.test(r.rule));
   // an unscanned check must never look like a pass
   const buy = missing.length ? Math.min(b0, 3) : b0;
   const early = !pending.length && !missing.length && tooEarly(rows);
@@ -1131,7 +1171,7 @@ function radarPrefilter(p) {
 // same final number as the report: an unscanned check caps it at 3, a too-early coin is never a candidate
 function finalScore(rows) {
   const { buy, reasons } = score(rows);
-  const missing = rows.filter(r => r.s === NA && !/^V9|^V25/.test(r.rule));
+  const missing = rows.filter(r => r.s === NA && !/^V9|^V25|^V26/.test(r.rule));
   return { buy: missing.length || tooEarly(rows) ? Math.min(buy, 3) : buy, reasons };
 }
 
