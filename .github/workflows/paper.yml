@@ -37,6 +37,7 @@ jobs:
           raw="https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/paper-data"
           curl -sSf "$raw/state.json" -o work/state.json || true
           curl -sSf "$raw/wallets.json" -o work/wallets.json || true
+          node site/paper/phishlists.mjs work/phish && site/paper/publish.sh "drainer lists" work/phish || echo "drainer lists failed this round"
           node site/paper/wallets.mjs work/wallets.json || echo "wallet finder failed this round"
           site/paper/publish.sh "wallets" work/wallets.json || true
           for i in $(seq 1 11); do

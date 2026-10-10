@@ -259,6 +259,24 @@
         <a class="social" href="https://www.tiktok.com/@dkcoinscan" target="_blank" rel="noopener"><b>TikTok</b><span>@dkcoinscan · short scans and what to look for.</span></a>
         <a class="social" id="fb-link" href="#" target="_blank" rel="noopener" hidden><b>Facebook</b><span>Message us on Facebook.</span></a>
       </div>
+      <div class="linkcheck" id="linkcheck">
+        <p class="eyebrow">Is this link safe?</p>
+        <h3>Check a link before you connect a wallet</h3>
+        <p class="muted">Paste any link from a DM, an ad or a "claim" button. We check it against 440,000+ known drainer and phishing sites from MetaMask, Phantom and Scam Sniffer.</p>
+        <form id="link-form" class="scan-row" autocomplete="off"><input id="link-in" placeholder="https://… or just the domain" spellcheck="false" aria-label="Link to check"><button class="btn btn-red" type="submit">Check link</button></form>
+        <p id="link-out" class="link-out" aria-live="polite"></p>
+        <p class="fine">Not on the list does not mean safe: new drainer sites appear every hour. Bookmark the real sites you use and never sign something you don't understand.</p>
+      </div>
+      <div class="tools">
+        <p class="eyebrow">Free safety tools we trust</p>
+        <ul class="tools-list">
+          <li><a href="https://revoke.cash" target="_blank" rel="noopener"><b>Revoke.cash</b></a><span>See and cancel old token approvals a site still has on your wallet.</span></li>
+          <li><a href="https://rabby.io" target="_blank" rel="noopener"><b>Rabby</b></a><span>A wallet that shows what will change before you sign.</span></li>
+          <li><a href="https://www.scamsniffer.io" target="_blank" rel="noopener"><b>Scam Sniffer</b></a><span>Warns about phishing sites and drainer signatures.</span></li>
+          <li><a href="https://github.com/phantom/blocklist" target="_blank" rel="noopener"><b>Phantom blocklist</b></a><span>The 2,300+ Solana sites Phantom blocks as drainers.</span></li>
+        </ul>
+        <p class="fine">Fake GitHub "trading bots" are a common drain: an old account, thousands of stars and a Telegram link in the description, for a Solana tool, is a red flag. Never paste a private key into anyone's app.</p>
+      </div>
       <div class="join" id="join">
         <div>
           <p class="eyebrow">How to join the project</p>
@@ -437,6 +455,7 @@
 <script src="companion-launch.js"></script>
 <script src="risk-profiles.js"></script>
 <script src="risk-ui.js"></script>
+<script src="phish.js"></script>
 <script src="resolve.js"></script>
 <script src="checker.js"></script>
 <script src="jelly.js"></script>

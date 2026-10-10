@@ -470,3 +470,15 @@ html.ext .rep-body { grid-template-columns: 1fr }
 .wallet-row .radar-act a, .paper-row .radar-act a { font-size: 13px }
 .earlier { margin-top: 28px }
 .earlier .eyebrow { margin-bottom: 10px }
+
+/* ---------- drainer checks ---------- */
+.phish-alert { background: color-mix(in srgb, var(--stop) 22%, var(--slate)); border: 1px solid var(--stop); border-radius: 12px; padding: 10px 12px; font-size: 13px; margin-bottom: 12px }
+.phish-alert b { color: #fff }
+.linkcheck, .tools { margin-top: 28px; padding: 22px; border-radius: 18px; background: var(--slate); border: 1px solid var(--rule) }
+.linkcheck h3 { margin: 8px 0 6px }
+.linkcheck .scan-row { margin: 14px 0 8px }
+.link-out { margin: 0; font-size: 14.5px; min-height: 1.4em }
+.link-out.is-bad { color: var(--stop) } .link-out.is-ok { color: var(--go) }
+.tools-list { list-style: none; padding: 0; margin: 10px 0; display: grid; gap: 10px }
+.tools-list li { display: grid; gap: 2px }
+.tools-list span { color: var(--mist); font-size: 14px }

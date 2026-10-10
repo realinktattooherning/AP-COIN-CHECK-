@@ -7,7 +7,7 @@ msg="$1"; shift
 url="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
 tmp=$(mktemp -d)
 git clone -q --depth 1 --branch paper-data "$url" "$tmp" 2>/dev/null || mkdir -p "$tmp"
-for f in "$@"; do cp "$f" "$tmp/"; done
+for f in "$@"; do cp -r "$f" "$tmp/"; done
 cd "$tmp"
 rm -rf .git
 git init -q -b paper-data

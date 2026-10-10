@@ -1066,6 +1066,14 @@ const fromTab = () => CoinFinder.fromActiveTab().then(r => r.list);
 const IS_POPUP = IS_EXT && /app\.html$/.test(location.pathname);
 if (IS_POPUP) {
   document.documentElement.classList.add("ext");
+  // the open tab on the drainer lists (MetaMask, Phantom, Scam Sniffer)? warn before anything else
+  if (window.DKPhish && $("phish-alert")) {
+    chrome.tabs.query({ active: true, currentWindow: true }).then(([t]) => t && /^https?:/.test(t.url || "") ? DKPhish.check(t.url) : null).then(r => {
+      if (!r || !r.listed) return;
+      $("phish-alert").innerHTML = `<b>⚠️ ${esc(r.domain)} is on the drainer lists</b> (MetaMask, Phantom, Scam Sniffer). Close this tab. Don't connect a wallet, approve or sign anything here.`;
+      $("phish-alert").hidden = false;
+    }).catch(() => {});
+  }
   // unpacked extensions cannot update themselves: compare with the live manifest (main) and offer the new package
   if ($("update")) {
     const LIVE = "https://realinktattooherning.github.io/AP-COIN-CHECK-/";

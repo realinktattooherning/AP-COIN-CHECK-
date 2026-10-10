@@ -21,6 +21,19 @@ const REELS = [
   if (FACEBOOK && el("fb-link")) { el("fb-link").href = FACEBOOK; el("fb-link").hidden = false; }
   if (JOIN_PDF && el("join-pdf")) { el("join-pdf").href = JOIN_PDF; el("join-pdf").hidden = false; }
 
+  if (el("link-form") && window.DKPhish) el("link-form").addEventListener("submit", async e => {
+    e.preventDefault();
+    const out = el("link-out"), v = el("link-in").value.trim();
+    if (!v) return;
+    out.className = "link-out"; out.textContent = "Checking …";
+    try {
+      const r = await DKPhish.check(v);
+      out.className = "link-out " + (r.listed ? "is-bad" : "is-ok");
+      out.textContent = r.listed ? `⚠️ ${r.domain} is on the drainer lists (match: ${r.match}). Don't open it, don't connect or sign.`
+        : `${r.domain} is not on the drainer lists. That is not a guarantee: check the spelling against the real site and never share your seed phrase.`;
+    } catch (err) { out.className = "link-out is-bad"; out.textContent = "Could not check right now (" + err.message + "). Treat the link as unsafe until you can."; }
+  });
+
   if (TOKEN_CA && el("ca")) {
     el("ca").textContent = TOKEN_CA;
     el("ca-copy").hidden = false;

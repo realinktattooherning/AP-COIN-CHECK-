@@ -14,7 +14,7 @@ Forsiden: vandmanden tegnes af `jelly.js` (bruges af `stage.js` og `hub.js`); `h
 (kort drejer ved scroll, valgt kort viser sit panel: rules / narrative / extension / finder) og live-papirhandlen.
 Papirhandel: `.github/workflows/paper.yml` kører `paper/run.mjs` ca. hver 30. min på GitHub Actions (samme scanner via headless browser,
 samme pool, $100/position, +100 % / −50 % / 24 t / likviditet væk) og skriver `state.json` til grenen `paper-data`
-(kun seneste tilstand; den eneste gren der må force-pushes, og kun af botten). Siden læser den via raw.githubusercontent.com.
+(kun seneste tilstand; den eneste gren der må force-pushes, og kun af botten). Siden læser den via raw.githubusercontent.com. Drainer-tjek: `paper/phishlists.mjs` samler MetaMask + Phantom + Scam Sniffer i `paper-data/phish/` (256 shards), `phish.js` tjekker et domæne (popup-advarsel + "Is this link safe?" på siden).
 Ingen inline-scripts i HTML (udvidelser tillader dem ikke). Ny API-host → tilføj den under `host_permissions` i `manifest.json`, og bump `version`.
 
 - Reglerne kommer fra `memecoin/rugpull-checklist.md` i `realinktattooherning/realink-chatbot`, og siden skal give
