@@ -1,27 +1,27 @@
-# Live paper trading for the website: every ~30 min, scored with the site's own scanner. Simulated only.
-# Data goes to the branch `paper-data` (one commit, replaced each run) so `main` stays clean; the site reads it live.
+# Live paper trading + wallet finder for the website. Simulated only, read-only public data.
+# GitHub's own schedule proved unreliable, so one run loops every 30 min for ~5.5 h and then starts the next run itself.
+# The schedule below stays as a backup in case the chain ever breaks. Data goes to the branch `paper-data`.
 name: Paper trading
 on:
   schedule:
-    - cron: "13,43 * * * *"   # off the busy :00/:30 slots, where GitHub often skips scheduled runs
+    - cron: "13 */6 * * *"
   workflow_dispatch:
 permissions:
   contents: write
+  actions: write
 concurrency:
   group: paper
   cancel-in-progress: false
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 350
+    env:
+      GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
         with:
           path: site
-      - name: Load paper state
-        run: |
-          git clone --depth 1 --branch paper-data "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" data \
-            || { mkdir data && echo "first run: no paper-data branch yet"; }
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -31,16 +31,21 @@ jobs:
           npm init -y > /dev/null
           npm install --no-audit --no-fund playwright@1.48.2
           npx playwright install --with-deps chromium
-      - name: Run paper trader
-        run: node site/paper/run.mjs site data/state.json
-      - name: Publish to paper-data
-        working-directory: data
+      - name: Trade on paper every 30 min, find wallets every 6 h
         run: |
-          rm -rf .git
-          git init -q -b paper-data
-          git config user.name "dk-paper-bot"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A   # state.json and wallets.json (the wallet finder writes to the same branch)
-          git commit -qm "paper state $(date -u +%FT%TZ)"
-          # this branch only holds the latest state; replacing it keeps the repo small (the one allowed force-push)
-          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:paper-data
+          mkdir -p work
+          raw="https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/paper-data"
+          curl -sSf "$raw/state.json" -o work/state.json || true
+          curl -sSf "$raw/wallets.json" -o work/wallets.json || true
+          node site/paper/wallets.mjs work/wallets.json || echo "wallet finder failed this round"
+          site/paper/publish.sh "wallets" work/wallets.json || true
+          for i in $(seq 1 11); do
+            start=$(date +%s)
+            node site/paper/run.mjs site work/state.json || echo "paper run $i failed"
+            site/paper/publish.sh "paper state" work/state.json || echo "publish $i failed"
+            left=$(( 1800 - ($(date +%s) - start) ))
+            [ "$i" -lt 11 ] && [ "$left" -gt 0 ] && sleep "$left"
+          done
+      - name: Start the next run
+        if: always()
+        run: gh workflow run paper.yml --repo "$GITHUB_REPOSITORY" --ref main

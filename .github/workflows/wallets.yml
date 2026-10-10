@@ -1,14 +1,13 @@
 # Wallet finder for the website: 4 times a day, first buyers of recent pump.fun runners that still trade and are not bots.
 # Read-only public data. Writes wallets.json to the paper-data branch (same group as the paper bot, so they never collide).
 name: Wallet finder
+# Normally the paper bot runs the wallet finder every 6 h; this workflow is for a manual extra run.
 on:
-  schedule:
-    - cron: "27 1,7,13,19 * * *"
   workflow_dispatch:
 permissions:
   contents: write
 concurrency:
-  group: paper
+  group: wallets
   cancel-in-progress: false
 jobs:
   run:
@@ -28,12 +27,6 @@ jobs:
       - name: Find wallets
         run: node site/paper/wallets.mjs data/wallets.json
       - name: Publish to paper-data
-        working-directory: data
-        run: |
-          rm -rf .git
-          git init -q -b paper-data
-          git config user.name "dk-paper-bot"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -qm "wallets $(date -u +%FT%TZ)"
-          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:paper-data
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: site/paper/publish.sh "wallets" data/wallets.json
