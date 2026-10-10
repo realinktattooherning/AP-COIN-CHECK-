@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "DK Rug Scan",
-  "version": "3.6",
+  "version": "3.7",
   "description": "Rug-pull scanner for memecoins: 24 checks, one score from 1 to 10. Read-only, never touches your wallet.",
   "icons": {
     "16": "assets/icon-16.png",
@@ -23,7 +23,8 @@
     "activeTab",
     "scripting",
     "storage",
-    "declarativeNetRequest"
+    "declarativeNetRequest",
+    "sidePanel"
   ],
   "host_permissions": [
     "https://api.dexscreener.com/*",
@@ -54,5 +55,16 @@
         "path": "rules.json"
       }
     ]
+  },
+  "optional_host_permissions": [
+    "https://*/*",
+    "http://*/*"
+  ],
+  "side_panel": {
+    "default_path": "screen.html"
+  },
+  "minimum_chrome_version": "116",
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
   }
 }

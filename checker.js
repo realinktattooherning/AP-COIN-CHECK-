@@ -1003,6 +1003,13 @@ function render(addr, name, pair, L, rows, pending = [], chain = "solana") {
     </div>
     <p class="fine">${SCALE}. A red flag on a hard rule (V4, V5, V14–V18, mint, freeze, honeypot, sell tax) caps the score at 2; a check that could not run caps it at 3. The rules are built for new memecoins ($50K to a few $M) — large established coins get false reds on V14/V15. Reads public data only. Not financial advice.</p>`;
   $("out").hidden = false;
+  // inside the stream panel (iframe): hand the finished scan to its research box (research-ui.js)
+  if (window.parent !== window && !pending.length && pair.baseToken) {
+    const detail = { mint: addr, pair, creator: (L.pump || {}).creator || null, at: Date.now() / 1000,
+      security: { at: Date.now() / 1000, chain, pool: pair.pairAddress, mint: addr,
+        complete: !rows.some(r => r.s === NA && !r.rule.includes("(info)")), risk_flags: rows.filter(r => r.s === RED).map(r => r.rule) } };
+    window.parent.postMessage({ type: "dk-research-scan", detail }, location.origin);
+  }
   if (typeof stageUpdate === "function") stageUpdate(addr, name, pair, crewState(rows, pending), pending, buy, label, tone);
   $("copy").onclick = () => navigator.clipboard.writeText(text).then(
     () => { $("copy").textContent = "Copied"; },
@@ -1035,66 +1042,23 @@ const IS_EXT = typeof chrome !== "undefined" && !!(chrome.tabs && chrome.tabs.qu
 
 function start(a) { $("addr").value = a; $("f").requestSubmit(); }
 
-// rank every address the open page mentions: the URL counts most, then links to coin sites, the title, then the page text
-const COIN_LINK = /dexscreener|pump\.fun|solscan|birdeye|gmgn|axiom|photon|bullx|jup\.ag|raydium|geckoterminal|dextools|etherscan|basescan|bscscan|rugcheck|four\.meme/i;
-function pageCandidates(pg) {
-  const score = new Map();
-  const bump = (str, pts) => { for (const id of new Set(String(str || "").match(BASE58) || [])) score.set(id, (score.get(id) || 0) + pts); };
-  bump(pg.url, 100);
-  for (const l of pg.links || []) bump(l, 12);
-  bump(pg.title, 20);
-  for (const id of String(pg.text || "").match(BASE58) || []) score.set(id, (score.get(id) || 0) + 1);
-  return [...score.entries()].sort((x, y) => y[1] - x[1]).slice(0, 30).map(([id, pts]) => ({ id, pts }));
-}
-
-// resolve candidates to real tokens: an id can be the token itself or a pool (Axiom, Photon and DexScreener URLs show the pool)
-async function resolveCandidates(cands) {
-  const found = new Map();
-  const keep = (p, pts) => {
-    if (!p || !p.baseToken) return;
-    const a = p.baseToken.address, liq = (p.liquidity || {}).usd || 0, old = found.get(a);
-    if (!old || pts > old.pts || (pts === old.pts && liq > old.liq))
-      found.set(a, { addr: a, symbol: p.baseToken.symbol, pts: Math.max(pts, old ? old.pts : 0), liq: Math.max(liq, old ? old.liq : 0), url: p.url, chain: p.chainId });
-  };
-  const sol = cands.filter(c => !EVM_ADDR.test(c.id)), evm = cands.filter(c => EVM_ADDR.test(c.id)).slice(0, 4);
-  const pts = id => (cands.find(c => c.id === id) || {}).pts || 0;
-  if (sol.length) {
-    const ids = sol.map(c => c.id).join(",");
-    const [toks, pairs] = await Promise.all([
-      reqRaw(`https://api.dexscreener.com/tokens/v1/solana/${ids}`, null, 2).catch(() => []),
-      reqRaw(`https://api.dexscreener.com/latest/dex/pairs/solana/${ids}`, null, 2).catch(() => ({})),
-    ]);
-    for (const p of toks || []) keep(p, pts(p.baseToken.address));
-    for (const p of (pairs && pairs.pairs) || []) keep(p, pts(p.pairAddress));
-  }
-  for (const c of evm) {
-    try {
-      const d = await reqRaw(`https://api.dexscreener.com/latest/dex/search?q=${c.id}`, null, 2);
-      for (const p of d.pairs || []) if ([p.baseToken.address, p.pairAddress].some(x => x.toLowerCase() === c.id.toLowerCase())) keep(p, c.pts);
-    } catch {}
-  }
-  return [...found.values()].sort((x, y) => y.pts - x.pts || y.liq - x.liq);
-}
-
-async function fromTab() {
-  // extension popup: find the coin on the open tab — a trading terminal, a chart, a livestream, an X post
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  const pg = { url: tab.url || "", title: tab.title || "", links: [], text: "" };
-  // the click that opened the popup lets us read this one tab (activeTab); nothing is changed on the page
-  try {
-    const [r] = await chrome.scripting.executeScript({ target: { tabId: tab.id }, func: re => ({
-      links: [...document.querySelectorAll("a[href]")].map(a => a.href).filter(h => new RegExp(re, "i").test(h)).slice(0, 300),
-      text: (document.body ? document.body.innerText : "").slice(0, 300000), title: document.title,
-    }), args: [COIN_LINK.source] });
-    Object.assign(pg, r.result || {});
-  } catch {}
-  return resolveCandidates(pageCandidates(pg));
-}
+// the coin on the open tab: resolve.js reads the page (URL, coin links, title, text) and resolves pools to tokens
+const fromTab = () => CoinFinder.fromActiveTab().then(r => r.list);
 
 // the popup is app.html inside the extension; a full tab gets the whole landing page (index.html), never the narrow popup
 const IS_POPUP = IS_EXT && /app\.html$/.test(location.pathname);
 if (IS_POPUP) {
   document.documentElement.classList.add("ext");
+  // stream mode lives in the side panel (screen.html); open() must run straight from the click, so the window id is read first
+  if ($("stream") && chrome.sidePanel && chrome.sidePanel.open) {
+    let winId = null;
+    chrome.windows.getCurrent().then(w => { winId = w.id; }).catch(() => {});
+    $("stream").hidden = false;
+    $("stream").onclick = () => {
+      const fallback = () => chrome.windows.create({ url: chrome.runtime.getURL("screen.html"), type: "popup", width: 470, height: 880 });
+      (winId != null ? chrome.sidePanel.open({ windowId: winId }) : Promise.reject()).then(() => window.close(), fallback);
+    };
+  }
   if ($("big")) {
     $("big").hidden = false;
     $("big").onclick = () => {

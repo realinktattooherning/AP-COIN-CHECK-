@@ -5,7 +5,7 @@
 Svar på dansk. Selve siden er på engelsk (brand: **DK Rug Scan**, token **$DKRUGSCAN**, bygget af Alex Porsing).
 Repoet er både websiden (Netlify `dkrugscan.netlify.app` + GitHub Pages fra `main`, live ~1 min efter push) og Chrome-udvidelsen
 (`manifest.json`, popup = `app.html`). `index.html` = landingsside med scanneren i heroen, `app.html` = kun scanneren.
-Al scan-logik ligger i `checker.js`; landingssidens ekstra (token-CA, reels) i `site.js`; vandmand-scenen (2D-canvas, coinens DexScreener-chart bagved) i `stage.js`, som får data fra `render()` via `stageUpdate()`; design i `styles.css`.
+Al scan-logik ligger i `checker.js`; adresse-finderen (side → token, bruges af popup og stream-panel) i `resolve.js`; stream-panelet (sidepanel, OCR + "find på åben fane", fra Codex 3.5) i `screen.html`/`screen.js`/`screen-core.js` + `research-*.js`, `market-context.js`, `vendor/ocr/`. Popup = scanneren først, stream-panelet åbnes med knappen "Stream mode"; landingssidens ekstra (token-CA, reels) i `site.js`; vandmand-scenen (2D-canvas, coinens DexScreener-chart bagved) i `stage.js`, som får data fra `render()` via `stageUpdate()`; design i `styles.css`.
 Ingen inline-scripts i HTML (udvidelser tillader dem ikke). Ny API-host → tilføj den under `host_permissions` i `manifest.json`, og bump `version`.
 
 - Reglerne kommer fra `memecoin/rugpull-checklist.md` i `realinktattooherning/realink-chatbot`, og siden skal give

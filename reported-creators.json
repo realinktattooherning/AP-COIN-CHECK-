@@ -1,0 +1,191 @@
+{
+  "revision": "reported-creators-1",
+  "recorded_at": "2026-10-10T02:17:21.787340+00:00",
+  "source_url": "https://x.com/bandosei/status/2108215385397059797",
+  "source_published_at": "2026-10-08T15:18:11Z",
+  "image_url": "https://pbs.twimg.com/media/HUHitl8XwAASiP_.png?name=orig",
+  "image_sha256": "b64fd76f04a40bcd5fa14998d2970a798393211d9335fed8cd908476b929948c",
+  "evidence_status": "EXTERNAL_REPORT_UNVERIFIED",
+  "address_method": "Manual transcription checked against original image; base58 decodes to 32 bytes. This does not validate its allegations or establish wallet ownership.",
+  "scope": "Exact case-sensitive Solana creator address only; not holders, funders, associated wallets or token tickers.",
+  "score_effect": 0,
+  "confirmed_rugs": 0,
+  "caveat": "Deploy counts, PNL, few graduates and low caps do not prove liquidity theft. No source transactions or methodology supplied. Absence from this list is not a safety pass.",
+  "entries": [
+    {
+      "address": "bwamJzztZsepfkteWRChggmXuiiCQvpLqPietdNfSXa",
+      "chain": "solana",
+      "source_row": 1,
+      "status": "REPORTED_DEPLOYER",
+      "confirmed_rug_transactions": []
+    },
+    {
+      "address": "whamNNP9tHoxLg92yHvJPdYhghEoCg1qYTsh5a2oLbx",
+      "chain": "solana",
+      "source_row": 2,
+      "status": "REPORTED_DEPLOYER",
+      "confirmed_rug_transactions": []
+    },
+    {
+      "address": "7naFFwuEJWeWwWYQUkgAWHsxYKg3KctEuUj42JdAMidP",
+      "chain": "solana",
+      "source_row": 3,
+      "status": "REPORTED_DEPLOYER",
+      "confirmed_rug_transactions": []
+    },
+    {
+      "address": "GpTXmkdvrTajqkzX1fBmC4BUjSboF9dHgfnqPqj8WAc4",
+      "chain": "solana",
+      "source_row": 4,
+      "status": "REPORTED_DEPLOYER",
+      "confirmed_rug_transactions": []
+    },
+    {
+      "address": "5FqUo9aBjsp7QeeyN6Vi2ZmF2fjS4H5EU7wnAQwPy17z",
+      "chain": "solana",
+      "source_row": 5,
+      "status": "REPORTED_DEPLOYER",
+      "confirmed_rug_transactions": []
+    },
+    {
+      "address": "8ZN71XTdVo8yRovnGLmNgW3Tgniw6A4J3JGLvPD686FP",
+      "chain": "solana",
+      "source_row": 6,
+      "status": "REPORTED_DEPLOYER",
+      "confirmed_rug_transactions": []
+    },
+    {
+      "address": "AV7PjXHL5JXZ1YoYRoN9Dsstg1x2UciBupMCXcJP8gUz",
+      "chain": "solana",
+      "source_row": 7,
+      "status": "REPORTED_DEPLOYER",
+      "confirmed_rug_transactions": []
+    },
+    {
+      "address": "D9gQ6RhKEphobPBUdWY5bPQt2p3zGk3iVz6ChpUi2ArA",
+      "chain": "solana",
+      "source_row": 8,
+      "status": "REPORTED_DEPLOYER",
+      "confirmed_rug_transactions": []
+    },
+    {
+      "address": "EBx24uAPtaS1SvHwRhKEktSgzaXdiVEyHuSVpAMVwrcD",
+      "chain": "solana",
+      "source_row": 9,
+      "status": "REPORTED_DEPLOYER",
+      "confirmed_rug_transactions": []
+    },
+    {
+      "address": "Aqje5DsN4u2PHmQxGF9PKfpsDGwQRCBhWeLKHCFhSMXk",
+      "chain": "solana",
+      "source_row": 10,
+      "status": "REPORTED_DEPLOYER",
+      "confirmed_rug_transactions": []
+    },
+    {
+      "address": "8i5U2uNBEuTc4zskYP14zbebDg2RSwrrG8REhEnJb97K",
+      "chain": "solana",
+      "source_row": 11,
+      "status": "REPORTED_DEPLOYER",
+      "confirmed_rug_transactions": []
+    },
+    {
+      "address": "GdRSPexhxbQz5H2zFQrNN2BAZUqEjAULBigTPvQ6oDMP",
+      "chain": "solana",
+      "source_row": 12,
+      "status": "REPORTED_DEPLOYER",
+      "confirmed_rug_transactions": []
+    },
+    {
+      "address": "8NJ7Ujpji8uMF2675mgaTSEm2DCbfJA7fiRKtiagkaLN",
+      "chain": "solana",
+      "source_row": 13,
+      "status": "REPORTED_DEPLOYER",
+      "confirmed_rug_transactions": []
+    },
+    {
+      "address": "GeUnv1jmtviRbR7Gu1JnXSGkUMUgFVBHuEVQVpTaUX1W",
+      "chain": "solana",
+      "source_row": 14,
+      "status": "REPORTED_DEPLOYER",
+      "confirmed_rug_transactions": []
+    },
+    {
+      "address": "DC99qH3jXiq5pPWQd6PjjJcCxTV593s58CLPxWGpEywt",
+      "chain": "solana",
+      "source_row": 15,
+      "status": "REPORTED_DEPLOYER",
+      "confirmed_rug_transactions": []
+    },
+    {
+      "address": "GZVSEAajExLJEvACHHQcuiBw7nJq98GWUEZtood9LM9b",
+      "chain": "solana",
+      "source_row": 16,
+      "status": "REPORTED_DEPLOYER",
+      "confirmed_rug_transactions": []
+    },
+    {
+      "address": "7GhWwhaMgbKiRWxF93Bud6HnHMci6NCLTJyTxG8zFH51",
+      "chain": "solana",
+      "source_row": 17,
+      "status": "REPORTED_DEPLOYER",
+      "confirmed_rug_transactions": []
+    },
+    {
+      "address": "G7NvZKjoVqBDWciSYtWWgUPB7DA1iJavdvH5jty2FAmM",
+      "chain": "solana",
+      "source_row": 18,
+      "status": "REPORTED_DEPLOYER",
+      "confirmed_rug_transactions": []
+    },
+    {
+      "address": "MNhBbrscBPmeid54buiqSgyWa4D8PY6uKHoK2wJsTJN",
+      "chain": "solana",
+      "source_row": 19,
+      "status": "REPORTED_DEPLOYER",
+      "confirmed_rug_transactions": []
+    },
+    {
+      "address": "B9Zbs2W9VK22AHnCWiK4PqBueDFzN17RNAFu5uFozLMJ",
+      "chain": "solana",
+      "source_row": 20,
+      "status": "REPORTED_DEPLOYER",
+      "confirmed_rug_transactions": []
+    },
+    {
+      "address": "36DWP52MVRDooYNrcRVDyoCh2R1fPXCYqKJQYg9pFQoE",
+      "chain": "solana",
+      "source_row": 21,
+      "status": "REPORTED_DEPLOYER",
+      "confirmed_rug_transactions": []
+    },
+    {
+      "address": "83QQFLxcEzuJZaejBnzAiW5tyfyaRHMLZnkhJbRPRWtf",
+      "chain": "solana",
+      "source_row": 22,
+      "status": "REPORTED_DEPLOYER",
+      "confirmed_rug_transactions": []
+    },
+    {
+      "address": "5Hyf6srdbrrD1HLjqxcFbXJRFBHgnwoZc7aZRj8vDuk5",
+      "chain": "solana",
+      "source_row": 23,
+      "status": "REPORTED_DEPLOYER",
+      "confirmed_rug_transactions": []
+    },
+    {
+      "address": "D3sovmjANgA8V27e5rnQft8kV3mocSH8gw9zwth3Ba9g",
+      "chain": "solana",
+      "source_row": 24,
+      "status": "REPORTED_DEPLOYER",
+      "confirmed_rug_transactions": []
+    },
+    {
+      "address": "6d22FozaKK239PoBYVffkYKA1QPQZE8fC7AQkpmHQfjp",
+      "chain": "solana",
+      "source_row": 25,
+      "status": "REPORTED_DEPLOYER",
+      "confirmed_rug_transactions": []
+    }
+  ]
+}
