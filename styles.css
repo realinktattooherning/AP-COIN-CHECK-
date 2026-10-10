@@ -465,3 +465,8 @@ html.ext .rep-body { grid-template-columns: 1fr }
   background: linear-gradient(120deg, color-mix(in srgb, var(--dk) 18%, var(--slate)), var(--slate)); border: 1px solid var(--rule-2) }
 .join h3 { margin: 8px 0 6px }
 .join .muted { margin: 0; max-width: 52ch }
+
+/* ---------- wallets we found + earlier tests ---------- */
+.wallet-row .radar-act a, .paper-row .radar-act a { font-size: 13px }
+.earlier { margin-top: 28px }
+.earlier .eyebrow { margin-bottom: 10px }

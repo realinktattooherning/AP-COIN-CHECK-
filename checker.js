@@ -1259,6 +1259,7 @@ function radarDraw(current) {
         <span class="mono muted">${x.n} new coins · first seen ${ago(x.first)}</span>
         <span class="narr-top">biggest: $${esc(x.top.s)} ${fmt(x.top.mc)}</span>
         <button class="btn btn-ghost" type="button" data-scan="${esc(x.top.mint)}">Scan biggest</button>
+        ${link("https://pump.fun/coin/" + x.top.mint, "pump.fun ↗")}
       </li>`).join("") : `<li class="muted">No word shows up in ${NARR_RISING}+ new coins in the last 6 hours yet.</li>`;
   }
   box.innerHTML = hits.length ? hits.map(h => `
@@ -1269,7 +1270,7 @@ function radarDraw(current) {
       <span class="radar-age${Date.now() - h.at > 3600e3 ? " old" : ""}" title="${esc(new Date(h.at).toLocaleString())}">scanned ${ago(h.at)}</span>
       <code class="radar-ca">${esc(h.addr)}</code>
       <span class="radar-why muted">${esc(h.why.join(" · "))}</span>
-      <span class="radar-act"><button class="btn btn-ghost" type="button" data-scan="${esc(h.addr)}">Rescan</button><button class="btn btn-ghost" type="button" data-copy="${esc(h.addr)}">Copy CA</button>${h.url ? link(h.url, "Chart") : ""}</span>
+      <span class="radar-act"><button class="btn btn-ghost" type="button" data-scan="${esc(h.addr)}">Rescan</button><button class="btn btn-ghost" type="button" data-copy="${esc(h.addr)}">Copy CA</button>${h.url ? link(h.url, "Chart") : ""}${link("https://pump.fun/coin/" + h.addr, "pump.fun ↗")}</span>
     </li>`).join("") : `<li class="muted">No coin has scored ${RADAR_MIN}/10 or more yet today. Most new coins don't — that is the point.</li>`;
 }
 
@@ -1376,7 +1377,7 @@ function watchDraw() {
       <span class="mono muted">${a.mc ? fmt(a.mc) + " MC" : ""}</span>
       <span class="radar-age${Date.now() - a.at > 3600e3 ? " old" : ""}">${ago(a.at)}</span>
       <code class="radar-ca">${esc(a.mint)}</code>
-      <span class="radar-act"><button class="btn btn-ghost" type="button" data-scan="${esc(a.mint)}">Scan</button><button class="btn btn-ghost" type="button" data-copy="${esc(a.mint)}">Copy CA</button>${a.url ? link(a.url, "Chart") : ""}</span>
+      <span class="radar-act"><button class="btn btn-ghost" type="button" data-scan="${esc(a.mint)}">Scan</button><button class="btn btn-ghost" type="button" data-copy="${esc(a.mint)}">Copy CA</button>${a.url ? link(a.url, "Chart") : ""}${link("https://pump.fun/coin/" + a.mint, "pump.fun ↗")}</span>
     </li>`).join("");
 }
 

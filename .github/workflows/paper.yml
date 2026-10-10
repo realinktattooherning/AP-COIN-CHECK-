@@ -40,7 +40,7 @@ jobs:
           git init -q -b paper-data
           git config user.name "dk-paper-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add state.json
+          git add -A   # state.json and wallets.json (the wallet finder writes to the same branch)
           git commit -qm "paper state $(date -u +%FT%TZ)"
           # this branch only holds the latest state; replacing it keeps the repo small (the one allowed force-push)
           git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:paper-data

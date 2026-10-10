@@ -1,0 +1,39 @@
+# Wallet finder for the website: 4 times a day, first buyers of recent pump.fun runners that still trade and are not bots.
+# Read-only public data. Writes wallets.json to the paper-data branch (same group as the paper bot, so they never collide).
+name: Wallet finder
+on:
+  schedule:
+    - cron: "27 1,7,13,19 * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: paper
+  cancel-in-progress: false
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: site
+      - name: Load paper-data
+        run: |
+          git clone --depth 1 --branch paper-data "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" data \
+            || mkdir data
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Find wallets
+        run: node site/paper/wallets.mjs data/wallets.json
+      - name: Publish to paper-data
+        working-directory: data
+        run: |
+          rm -rf .git
+          git init -q -b paper-data
+          git config user.name "dk-paper-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -qm "wallets $(date -u +%FT%TZ)"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:paper-data

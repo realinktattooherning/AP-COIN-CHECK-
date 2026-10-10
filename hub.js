@@ -169,7 +169,7 @@
         <span class="radar-age">${closed ? esc(p.exitWhy) + " · " + ago(p.exitAt) : "opened " + ago(p.openedAt)}</span>
         <code class="radar-ca">${esc(p.mint)}</code>
         ${p.note ? `<span class="radar-why muted">${esc(p.note)}</span>` : ""}
-        <span class="radar-act">${p.url ? `<a href="${esc(p.url)}" target="_blank" rel="noopener">Chart</a>` : ""}<a href="?a=${encodeURIComponent(p.mint)}">Scan now</a></span>
+        <span class="radar-act">${p.url ? `<a href="${esc(p.url)}" target="_blank" rel="noopener">Chart</a>` : ""}<a href="https://pump.fun/coin/${encodeURIComponent(p.mint)}" target="_blank" rel="noopener">pump.fun ↗</a><a href="?a=${encodeURIComponent(p.mint)}">Scan now</a></span>
       </li>`;
     };
     document.getElementById("paper-open").innerHTML = (st.open || []).map(p => row(p, false)).join("") || `<li class="muted">No open positions right now. A coin needs 6/10 or more.</li>`;
@@ -179,4 +179,37 @@
   }
   paper();
   setInterval(paper, 60e3);
+
+  // ---------- wallets the finder bot published (wallets.json on paper-data) ----------
+  const WALLETS = "https://raw.githubusercontent.com/realinktattooherning/AP-COIN-CHECK-/paper-data/wallets.json";
+  const wbox = document.getElementById("wallet-list");
+  async function wallets() {
+    if (!wbox) return;
+    let d;
+    try { const r = await fetch(WALLETS + "?t=" + Math.floor(Date.now() / 60e3), { cache: "no-store" }); if (!r.ok) throw 0; d = await r.json(); }
+    catch { wbox.innerHTML = `<li class="muted">The wallet finder has not published yet. It runs 4 times a day.</li>`; return; }
+    const short = a => a.slice(0, 4) + "…" + a.slice(-4);
+    wbox.innerHTML = (d.wallets || []).slice(0, 20).map(w => `
+      <li class="radar-hit wallet-row">
+        <span class="verdict-tag v-${w.hits >= 2 ? "go" : "hold"}">${w.hits >= 2 ? "early in " + w.hits : "early in 1"}</span>
+        <b class="mono">${esc(short(w.addr))}</b>
+        <span class="mono muted">${esc(w.runners.map(x => "$" + x).join(", "))}</span>
+        <span class="radar-age">active ${w.lastActiveDays < 1 ? "today" : Math.round(w.lastActiveDays) + " d ago"}</span>
+        <code class="radar-ca">${esc(w.addr)}</code>
+        <span class="radar-act"><button class="btn btn-ghost" type="button" data-follow="${esc(w.addr)}">Follow</button><a href="https://pump.fun/profile/${encodeURIComponent(w.addr)}" target="_blank" rel="noopener">pump.fun ↗</a><a href="https://gmgn.ai/sol/address/${encodeURIComponent(w.addr)}" target="_blank" rel="noopener">GMGN ↗</a><a href="https://solscan.io/account/${encodeURIComponent(w.addr)}" target="_blank" rel="noopener">Solscan ↗</a></span>
+      </li>`).join("") || `<li class="muted">No wallets passed the filter in the last run.</li>`;
+    document.getElementById("wallet-updated").textContent = `Last run ${ago(d.updated)} · runners checked: ${(d.runners || []).map(r => "$" + r.sym).join(", ")}.`;
+  }
+  if (wbox) {
+    wbox.addEventListener("click", e => {
+      const b = e.target.closest("[data-follow]");
+      if (!b || typeof watchLoad !== "function") return;
+      const st = watchLoad();
+      if (!st.wallets.some(w => w.addr === b.dataset.follow)) { st.wallets.push({ addr: b.dataset.follow, label: "found by DK Rug Scan" }); watchSave(st); }
+      if (typeof watchDraw === "function") watchDraw();
+      b.textContent = "Following ✓"; b.disabled = true;
+    });
+    wallets();
+    setInterval(wallets, 10 * 60e3);
+  }
 })();
