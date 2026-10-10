@@ -1099,9 +1099,13 @@ async function radarTick() {
       st.seen[a] = Date.now();
       if (!own.length) continue;
       const best = own.reduce((x, y) => (((y.liquidity || {}).usd || 0) > ((x.liquidity || {}).usd || 0) ? y : x));
+      // every new coin feeds the narrative counter, screened or not
+      st.names = st.names || {};
+      st.names[a] = { s: best.baseToken.symbol || "", n: best.baseToken.name || "", mc: best.marketCap || best.fdv || 0, at: Date.now() };
       if (!radarPrefilter(best)) RADAR.queue.push(a);
     }
   }
+  for (const [m, c] of Object.entries(st.names || {})) if (Date.now() - c.at > NARR_WINDOW) delete st.names[m];
   st.passed += RADAR.queue.length;
   radarSave(st);
   RADAR.note = `${found.size} coins found · ${RADAR.queue.length} passed the screener`;
@@ -1133,6 +1137,25 @@ function ago(ms) {
   return m < 1 ? "just now" : m < 60 ? `${m} min ago` : `${Math.floor(m / 60)} h ${m % 60} min ago`;
 }
 
+// ---------- Narrative heat: the same word in several new coins within a few hours = a narrative forming ----------
+// Free version of a "narrative hunter": it only sees a trend once coins exist (no X search)
+const NARR_WINDOW = 6 * 3600e3, NARR_RISING = 3, NARR_HOT = 10;
+const NARR_STOP = new Set("the coin token sol solana pump fun meme memecoin official real new first inu dog cat ai of and on in to for by with a an is it my your our this that just".split(" "));
+function narratives(st) {
+  const now = Date.now(), words = {};
+  for (const [mint, c] of Object.entries(st.names || {})) {
+    if (now - c.at > NARR_WINDOW) continue;
+    const ws = new Set(`${c.s} ${c.n}`.toLowerCase().normalize("NFKD").replace(/[^a-z0-9 ]+/g, " ").split(/\s+/).filter(w => w.length >= 3 && !NARR_STOP.has(w) && !/^\d+$/.test(w)));
+    for (const w of ws) (words[w] = words[w] || []).push({ mint, ...c });
+  }
+  return Object.entries(words).filter(([, cs]) => cs.length >= NARR_RISING)
+    .map(([w, cs]) => ({ w, n: cs.length, mints: new Set(cs.map(c => c.mint)), temp: cs.length >= NARR_HOT ? "hot" : "rising", top: cs.reduce((x, y) => (y.mc > x.mc ? y : x)), first: Math.min(...cs.map(c => c.at)) }))
+    .sort((x, y) => y.n - x.n || y.w.length - x.w.length)
+    // "moo", "deng" and "moodeng" from the same coins are one narrative: drop a word whose coins are ≥80% already shown
+    .reduce((out, x) => (out.some(o => [...x.mints].filter(m => o.mints.has(m)).length >= 0.8 * x.n) ? out : [...out, x]), [])
+    .slice(0, 12);
+}
+
 function radarDraw(current) {
   const box = $("radar-list");
   if (!box) return;
@@ -1142,6 +1165,18 @@ function radarDraw(current) {
     `${st.scanned} fully scanned today`, `${RADAR.queue.length} in line`, RADAR.note,
     `list resets in ${Math.floor(left / 3600e3)} h ${Math.floor(left % 3600e3 / 60e3)} min`].filter(Boolean).join(" · ");
   const hits = [...st.hits].sort((x, y) => y.at - x.at);
+  const nb = $("narr-list");
+  if (nb) {
+    const ns = narratives(st);
+    nb.innerHTML = ns.length ? ns.map(x => `
+      <li class="narr narr-${x.temp}">
+        <span class="verdict-tag v-${x.temp === "hot" ? "stop" : "hold"}">${x.temp}</span>
+        <b>${esc(x.w)}</b>
+        <span class="mono muted">${x.n} new coins · first seen ${ago(x.first)}</span>
+        <span class="narr-top">biggest: $${esc(x.top.s)} ${fmt(x.top.mc)}</span>
+        <button class="btn btn-ghost" type="button" data-scan="${esc(x.top.mint)}">Scan biggest</button>
+      </li>`).join("") : `<li class="muted">No word shows up in ${NARR_RISING}+ new coins in the last 6 hours yet.</li>`;
+  }
   box.innerHTML = hits.length ? hits.map(h => `
     <li class="radar-hit">
       <span class="verdict-tag v-${h.buy >= 7 ? "go" : "hold"}">${h.buy}/10</span>
@@ -1273,12 +1308,14 @@ if ($("radar") && !IS_POPUP) {
     label(); radarDraw();
     if (!RADAR.paused) loop();
   };
-  $("radar-list").addEventListener("click", e => {
+  const listClick = e => {
     const t = e.target.closest("button");
     if (!t) return;
     if (t.dataset.scan) { start(t.dataset.scan); $("scanner").scrollIntoView({ behavior: "smooth" }); }
     if (t.dataset.copy) navigator.clipboard.writeText(t.dataset.copy).then(() => { t.textContent = "Copied"; });
-  });
+  };
+  $("radar-list").addEventListener("click", listClick);
+  if ($("narr-list")) $("narr-list").addEventListener("click", listClick);
   let running = false;
   async function loop() {
     if (running) return;

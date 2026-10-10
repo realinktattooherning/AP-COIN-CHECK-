@@ -371,3 +371,13 @@ html.ext .rep-body { grid-template-columns: 1fr }
 .watch-list { list-style: none; padding: 0; margin: 8px 0 0; display: grid; gap: 8px }
 .watch-list li { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center }
 .watch-list .btn { padding: 6px 10px; font-size: 12.5px }
+
+/* ---------- narrative heat ---------- */
+.narr-h { margin: 22px 0 6px }
+.narr-list { margin-top: 10px }
+.narr { background: var(--slate); border: 1px solid var(--rule); border-radius: var(--radius); padding: 10px 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px }
+.narr-hot { border-color: color-mix(in srgb, var(--stop) 45%, var(--rule)) }
+.narr-rising { border-color: color-mix(in srgb, var(--hold) 45%, var(--rule)) }
+.narr .mono { font-size: 12px }
+.narr-top { font-size: 13.5px; color: var(--mist) }
+.narr .btn { padding: 6px 10px; font-size: 12.5px; margin-left: auto }
