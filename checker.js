@@ -1049,6 +1049,17 @@ const fromTab = () => CoinFinder.fromActiveTab().then(r => r.list);
 const IS_POPUP = IS_EXT && /app\.html$/.test(location.pathname);
 if (IS_POPUP) {
   document.documentElement.classList.add("ext");
+  // unpacked extensions cannot update themselves: compare with the live manifest (main) and offer the new package
+  if ($("update")) {
+    const LIVE = "https://realinktattooherning.github.io/AP-COIN-CHECK-/";
+    const newer = (a, b) => { const x = a.split(".").map(Number), y = b.split(".").map(Number); for (let i = 0; i < Math.max(x.length, y.length); i++) { if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0); } return false; };
+    fetch(LIVE + "manifest.json", { cache: "no-store", credentials: "omit" }).then(r => r.json()).then(m => {
+      const mine = chrome.runtime.getManifest().version;
+      if (!m.version || !newer(m.version, mine)) return;
+      $("update").innerHTML = `<b>Update available: ${esc(m.version)}</b> (you have ${esc(mine)}). <a href="https://github.com/realinktattooherning/AP-COIN-CHECK-/archive/refs/heads/main.zip" target="_blank" rel="noopener">Download</a>, unzip over your extension folder, then press ⟳ on chrome://extensions.`;
+      $("update").hidden = false;
+    }).catch(() => {});
+  }
   // stream mode lives in the side panel (screen.html); open() must run straight from the click, so the window id is read first
   if ($("stream") && chrome.sidePanel && chrome.sidePanel.open) {
     let winId = null;

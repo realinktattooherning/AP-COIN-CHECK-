@@ -408,3 +408,7 @@ html.ext .rep-body { grid-template-columns: 1fr }
 /* ---------- popup: coin found on the open tab ---------- */
 .tab-more { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; font-size: 13px; margin-top: 6px }
 .linklike { background: none; border: 0; padding: 0; color: var(--frost); font: inherit; text-decoration: underline; text-decoration-color: var(--dk); text-underline-offset: 3px; cursor: pointer }
+
+/* ---------- popup: new version on main ---------- */
+.update-bar { background: color-mix(in srgb, var(--hold) 16%, var(--slate)); border: 1px solid color-mix(in srgb, var(--hold) 55%, var(--rule)); border-radius: 12px; padding: 10px 12px; font-size: 13px; margin-bottom: 12px }
+.update-bar b { color: var(--hold) }
