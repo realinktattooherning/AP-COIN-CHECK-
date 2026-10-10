@@ -4,8 +4,8 @@
 const TOKEN_CA = "";
 
 // "Beginner? Start safely" and "How to join the project": fill these in and the links appear. Leave empty to hide them.
-const FACEBOOK = "";                 // e.g. "https://www.facebook.com/dkrugscan"
-const JOIN_PDF = "";                 // e.g. "assets/join-the-project.pdf"
+const FACEBOOK = "https://www.facebook.com/profile.php?id=61595411813652";
+const JOIN_PDF = "https://dkcoinscan-investor.netlify.app/";   // investor site: "How to join the project"
 
 // Reels shown under "Watch it work": vertical MP4s in assets/reels/ with a poster frame each.
 const REELS = [
