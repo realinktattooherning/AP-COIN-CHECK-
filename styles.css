@@ -450,3 +450,18 @@ html.ext .rep-body { grid-template-columns: 1fr }
 .paper-stats { margin-bottom: 8px }
 .paper-stats .num { font-size: clamp(2.2rem, 4.6vw, 3.4rem) }
 .paper-row .radar-act a { font-size: 13px }
+
+/* ---------- beginner + socials + join ---------- */
+.beginner-cta { display: inline-block; margin: 14px 0 4px; padding: 10px 16px; border-radius: 999px; text-decoration: none;
+  border: 1px solid color-mix(in srgb, var(--go) 55%, var(--rule)); background: color-mix(in srgb, var(--go) 10%, transparent); font-size: 14.5px }
+.beginner-cta b { color: var(--go) }
+.socials { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 12px; margin-bottom: 28px }
+.social { display: grid; gap: 6px; padding: 20px; border-radius: var(--radius); background: var(--slate); border: 1px solid var(--rule); text-decoration: none }
+.social:hover { border-color: var(--dk-hi) }
+.social b { font: 900 italic 1.6rem/1 var(--display); font-stretch: 62% }
+.social span { color: var(--mist); font-size: 14.5px }
+.social[hidden] { display: none }
+.join { display: flex; flex-wrap: wrap; gap: 18px 28px; align-items: center; justify-content: space-between; padding: 24px; border-radius: 18px;
+  background: linear-gradient(120deg, color-mix(in srgb, var(--dk) 18%, var(--slate)), var(--slate)); border: 1px solid var(--rule-2) }
+.join h3 { margin: 8px 0 6px }
+.join .muted { margin: 0; max-width: 52ch }

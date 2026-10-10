@@ -394,7 +394,16 @@ async function devCheck(mint, rc, add) {
   if (!creator) return add(R, NA, "creator unknown", "Rugcheck had no creator wallet");
   let d;
   try { d = await req(`https://frontend-api-v3.pump.fun/coins-v2/user-created-coins/${creator}?offset=0&limit=50&includeNsfw=true`, null, 2); }
-  catch { return add(R, NA, "pump.fun did not answer", "pump.fun blocks websites; the Chrome extension and coin.py can read it"); }
+  catch {
+    // pump.fun blocks websites: fall back to Rugcheck's creatorTokens. Its creator can be a launch tool rather than the dev,
+    // so this fallback can warn (yellow) but never give a red
+    const ct = ((rc || {}).creatorTokens || []).filter(c => c.mint !== mint);
+    if (!rc || !Array.isArray(rc.creatorTokens)) return add(R, NA, "pump.fun and Rugcheck did not answer", "try again in a minute");
+    if (!ct.length) return add(R, GRN, "first launch from this wallet", "Rugcheck creator history (pump.fun not reachable from a website)");
+    const deadR = ct.filter(c => (c.marketCap || 0) < 10e3).length;
+    return add(R, (ct.length >= 2 && deadR >= 0.8 * ct.length) ? YEL : GRN, `${ct.length} earlier launches, ${deadR} now under $10K`,
+      "from Rugcheck (pump.fun blocks websites): its creator can be a launch tool, so at most a warning");
+  }
   const others = (d.coins || []).filter(c => c.mint !== mint);
   const total = Math.max(others.length, (d.count || 0) - 1);
   const mcOf = c => c.market_cap_usd ?? c.usd_market_cap ?? 0;

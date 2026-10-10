@@ -145,6 +145,8 @@
     finally{setBusy(false);}
   }
   // exact address from the open tab itself (URL, coin links, title, page text such as the stream chat): no OCR misreads
+  // on the website there is no tab access: screen share / screenshot / paste only
+  if(!(window.chrome&&chrome.tabs&&chrome.scripting)){$('from-tab').hidden=true;const h=document.querySelector('.from-tab-hint');if(h)h.textContent='På hjemmesiden: del stream-fanen eller indsæt et skærmbillede. "Find coin på åben fane" (præcis adresse fra chat/links) findes i Chrome-udvidelsen.';}
   $('from-tab').onclick=async()=>{
     if(busy)return;clearAnswer();setBusy(true);const id=epoch;
     try{

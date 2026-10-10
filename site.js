@@ -3,6 +3,10 @@
 // Official contract address of $DKRUGSCAN. Leave empty until launch.
 const TOKEN_CA = "";
 
+// "Beginner? Start safely" and "How to join the project": fill these in and the links appear. Leave empty to hide them.
+const FACEBOOK = "";                 // e.g. "https://www.facebook.com/dkrugscan"
+const JOIN_PDF = "";                 // e.g. "assets/join-the-project.pdf"
+
 // Reels shown under "Watch it work": vertical MP4s in assets/reels/ with a poster frame each.
 const REELS = [
   { src: "assets/reels/reel-1.mp4", poster: "assets/reels/reel-1.jpg", coin: "PUTER", verdict: "1/10 · Don't buy", tone: "stop", why: "18 of the top 19 holders are farmed wallets" },
@@ -13,6 +17,9 @@ const REELS = [
 (() => {
   const el = id => document.getElementById(id);
   if (el("year")) el("year").textContent = new Date().getFullYear();
+
+  if (FACEBOOK && el("fb-link")) { el("fb-link").href = FACEBOOK; el("fb-link").hidden = false; }
+  if (JOIN_PDF && el("join-pdf")) { el("join-pdf").href = JOIN_PDF; el("join-pdf").hidden = false; }
 
   if (TOKEN_CA && el("ca")) {
     el("ca").textContent = TOKEN_CA;

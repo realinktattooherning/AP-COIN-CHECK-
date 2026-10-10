@@ -105,6 +105,19 @@
       requestAnimationFrame(() => el.scrollIntoView({ block: "start" }));
     };
     addEventListener("hashchange", openHash);
+    // any in-page link to something inside a panel (e.g. "Beginner? Start safely") opens that panel first
+    document.addEventListener("click", e => {
+      const a = e.target.closest('a[href^="#"]');
+      if (!a || a.getAttribute("href").startsWith("#p-")) return;
+      const el = document.getElementById(decodeURIComponent(a.getAttribute("href").slice(1)));
+      const panel = el && el.closest(".hub-panel");
+      if (!panel) return;
+      e.preventDefault();
+      show(cards.findIndex(c => c.dataset.panel === panel.dataset.panel));
+      jumping = true; setTimeout(() => { jumping = false; }, 1200);
+      requestAnimationFrame(() => el.scrollIntoView({ behavior: reduced.matches ? "auto" : "smooth", block: "start" }));
+      history.replaceState(null, "", "#" + el.id);
+    });
     document.querySelectorAll('a[href^="#p-"]').forEach(a => a.addEventListener("click", e => {
       const i = cards.findIndex(c => "#p-" + c.dataset.panel === a.getAttribute("href"));
       if (i >= 0) { e.preventDefault(); goTo(i, true); }
