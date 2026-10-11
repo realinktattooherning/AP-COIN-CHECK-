@@ -83,6 +83,7 @@
   }
   async function json(url){const response=await fetch(url,{signal:AbortSignal.timeout(15000),cache:'no-store',credentials:'omit'});if(!response.ok)throw new Error('Datakilden svarede '+response.status);return response.json();}
   async function resolve(item){
+    if(item.kind==='any'){const viaPool=await resolve({...item,kind:'pair'}).catch(()=>[]);return viaPool.length?viaPool:resolve({...item,kind:'token'});}
     if(item.kind==='pair'){
       const data=await json(`https://api.dexscreener.com/latest/dex/pairs/${encodeURIComponent(item.chain)}/${encodeURIComponent(item.address)}`);
       return (data.pairs||[]).filter(p=>p.chainId===item.chain&&C.equal(p.pairAddress,item.address)&&C.valid(p.baseToken?.address||''));
@@ -125,6 +126,13 @@
       else if(stream||image){if(stream)takeImage();text=await ocr();label='Aflæst fra '+sourceLabel.toLowerCase();}
       else{setBusy(false);if(name){await searchName(name);return;}offerName('');status('Tilføj et billede, skriv en adresse eller fx RIPS, gi mig adresse og analyse.');return;}
       const id=epoch, items=C.extract(text);
+      let guessed=false;
+      if(!items.length){
+        // no valid address read: try look-alike fixes, and keep only those that match a real pool or token exactly
+        const found=[];
+        for(const v of C.ocrVariants(text)){try{const pairs=C.distinctTokens(await resolve({address:v,chain:'solana',kind:'any'}));if(id!==epoch)return;if(pairs.length){found.push({address:v,chain:'solana',kind:'any',evidence:v});}}catch{}if(found.length)break;}
+        if(found.length){items.push(...found);guessed=true;label+=' (OCR-tegn rettet, bekræftet mod DexScreener)';}
+      }
       if(!items.length){if(name){setBusy(false);await searchName(name);return;}offerName(name);status('Ingen fuld gyldig adresse aflæst. Ret teksten, afgræns billedet eller søg på navnet.');return;}
       status(`Fandt ${items.length} adresse${items.length===1?'':'r'}. Kontrollerer token og netværk…`);
       const matches=[];
@@ -132,7 +140,7 @@
         try{const pairs=C.distinctTokens(await resolve(item));if(id!==epoch)return;
           if(!pairs.length)rawCandidate(item,label,false);
           for(const p of pairs){
-            const evidence=item.kind==='pair'?`${label}: pool ${item.address}. Tokenadressen er slået op fra denne pool.`:`${label}; præcist tokenmatch i DexScreener. Kontrollér stadig OCR-tegnene.`;
+            const evidence=item.kind==='pair'||item.kind==='any'&&C.equal(p.pairAddress,item.address)?`${label}: pool ${item.address}. Tokenadressen er slået op fra denne pool.`:`${label}; præcist tokenmatch i DexScreener. Kontrollér stadig OCR-tegnene.`;
             if(!matches.some(x=>x.p.chainId===p.chainId&&C.equal(x.p.baseToken.address,p.baseToken.address)))matches.push({p,evidence});
           }
         }catch{if(id!==epoch)return;rawCandidate(item,label,true);}

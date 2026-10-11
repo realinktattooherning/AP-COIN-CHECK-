@@ -15,13 +15,18 @@
   function extract(text) {
     const found = [];
     const add = item => { if (!found.some(x => x.kind === item.kind && x.chain === item.chain && equal(x.address, item.address))) found.push(item); };
-    const rest = String(text).replace(/(?:https?:\/\/)?(?:www\.)?(?:pump\.fun|dexscreener\.com|solscan\.io|rugcheck\.xyz)\/[^\s<>"']+/gi, raw => {
+    const rest = String(text).replace(/(?:https?:\/\/)?(?:www\.)?(?:pump\.fun|dexscreener\.com|solscan\.io|rugcheck\.xyz|axiom\.trade|gmgn\.ai|photon-sol\.tinyastro\.io|(?:neo\.)?bullx\.io|birdeye\.so|dextools\.io)\/[^\s<>"']+/gi, raw => {
       try {
         const url = new URL(/^https?:/i.test(raw) ? raw : 'https://' + raw);
         const host = url.hostname.replace(/^www\./, '').toLowerCase();
         const parts = url.pathname.split('/').filter(Boolean);
         const address = parts.at(-1);
         if (host === 'dexscreener.com' && parts.length === 2 && /^[a-z0-9-]+$/.test(parts[0]) && valid(address)) add({address, chain:parts[0], kind:'pair', evidence:raw});
+        // trading terminals: the path or ?address= holds a pool or a token address, so both are tried
+        else if (/^(axiom\.trade|photon-sol\.tinyastro\.io|(neo\.)?bullx\.io|dextools\.io|gmgn\.ai|birdeye\.so)$/.test(host)) {
+          const a = [address, url.searchParams.get('address')].find(x => x && solanaAddress(x));
+          if (a) add({address:a, chain:'solana', kind:'any', evidence:raw});
+        }
         else if ((host === 'pump.fun' && parts.length === 2 && parts[0] === 'coin' || host === 'solscan.io' && parts[0] === 'token' || host === 'rugcheck.xyz' && parts[0] === 'tokens') && solanaAddress(address)) add({address, chain:'solana', kind:'token', evidence:raw});
       } catch {}
       return ' ';
@@ -30,6 +35,20 @@
       if (valid(match[0])) add({address:match[0], chain:evmAddress(match[0]) ? null : 'solana', kind:'token', evidence:match[0]});
     }
     return found;
+  }
+  // OCR on a small URL bar mixes up look-alike letters that Solana addresses never contain (0 O I l).
+  // These are only guesses: each one must still match a real pool or token exactly before it is shown.
+  function ocrVariants(text) {
+    const swap = {'0':['o','D','Q'], 'O':['o','D','Q'], 'I':['1','i','L','j'], 'l':['1','i','L']};
+    const out = [];
+    for (const m of String(text).matchAll(/(?<![A-Za-z0-9])[A-Za-z0-9]{32,44}(?![A-Za-z0-9])/g)) {
+      const w = m[0];
+      if (valid(w) || !/[0OIl]/.test(w) || (w.match(/[0OIl]/g) || []).length > 3) continue;
+      let list = [''];
+      for (const c of w) list = list.flatMap(x => (swap[c] || [c]).map(y => x + y));
+      for (const v of list) if (solanaAddress(v) && !out.includes(v)) out.push(v);
+    }
+    return out.slice(0, 24);
   }
   function queryName(text) {
     const s=String(text).trim();
@@ -67,7 +86,7 @@
     const change=(a,b)=>a!==null && a!==undefined && b!==null && b!==undefined && Number(a)>0 && Number.isFinite(Number(b)) ? (Number(b)/Number(a)-1)*100 : null;
     return {price:change(previous.pair.priceUsd,current.priceUsd), liquidity:change(previous.pair.liquidity?.usd,current.liquidity?.usd)};
   }
-  const api={solanaAddress,evmAddress,valid,equal,extract,queryName,suggestNames,tokenPairs,distinctTokens,pinnedPair,delta};
+  const api={solanaAddress,evmAddress,valid,equal,extract,ocrVariants,queryName,suggestNames,tokenPairs,distinctTokens,pinnedPair,delta};
   if (typeof module==='object' && module.exports) module.exports=api;
   else root.ScreenCore=api;
 })(typeof window==='object' ? window : this);
