@@ -14,6 +14,12 @@ const RULES = {
   cost: 0.02,            // assumed round-trip cost (fees + slippage) taken off every closed trade
   minScore: 6,           // same bar as the radar list
   takeProfit: 1.0,       // +100 %
+  halfAt: 0.5,           // sell half at +50 %, the rest rides with a trailing stop
+  trail: 0.3,            // after the half sale: close the rest when it falls 30 points under its peak (never below entry)
+  // strategy v2 (2026-10-11, after 8/8 losses): skip coins already pumped or near their ATH (V9b/V21 flagged),
+  // and coins flagged for both a bundle (V2) and insider wallets (V8)
+  skipFlags: ["V9b", "V21"],
+  skipBoth: ["V2", "V8"],
   stopLoss: -0.5,        // -50 %
   maxHoldH: 24,          // close at market after 24 h
   rugLiquidity: 1000,    // liquidity under $1K = liquidity pulled, closed at -100 %
@@ -27,6 +33,8 @@ const now = () => new Date().toISOString();
 const empty = { rules: RULES, started: now(), updated: null, open: [], closed: [], seen: {}, runs: 0, log: [] };
 let st = fs.existsSync(STATE) ? JSON.parse(fs.readFileSync(STATE, "utf8")) : empty;
 st.rules = RULES;
+// strategy v2 is measured on its own: v1's trades are kept apart, not mixed into the new numbers
+if (st.strategy !== 2) { st.v1 = { closed: st.closed, summary: st.summary, ended: now() }; st.closed = []; st.strategy = 2; st.started = now(); }
 
 async function getJSON(url) {
   for (let a = 0; a < 3; a++) {
@@ -51,6 +59,8 @@ for (const pos of st.open) {
   } catch (e) { pos.status = "UNKNOWN"; pos.note = "price lookup failed: " + e.message; }
 }
 const close = (pos, why, ret) => {
+  // a position that already sold half at +50 % books that half at +50 % and the rest at ret
+  if (pos.half) ret = (RULES.halfAt + ret) / 2;
   const net = ret - RULES.cost;
   st.closed.unshift({ ...pos, exitAt: now(), exitWhy: why, ret, net, pnl: +(RULES.stake * net).toFixed(2) });
   st.log.unshift(`${now()} CLOSE $${pos.sym} ${why} ${(net * 100).toFixed(1)}%`);
@@ -59,6 +69,8 @@ st.open = st.open.filter(pos => {
   const ageH = (Date.now() - Date.parse(pos.openedAt)) / 3600e3;
   if (pos.status === "OPEN" && pos.liq != null && pos.liq < RULES.rugLiquidity) { close(pos, "liquidity pulled", -1); return false; }
   if (pos.status === "OPEN" && pos.ret >= RULES.takeProfit) { close(pos, "take profit +100%", pos.ret); return false; }
+  if (pos.status === "OPEN" && !pos.half && pos.ret >= RULES.halfAt) { pos.half = true; st.log.unshift(`${now()} HALF $${pos.sym} sold half at +50%`); }
+  if (pos.status === "OPEN" && pos.half && pos.ret <= Math.max(0, pos.peak - RULES.trail)) { close(pos, "trailing stop after half", pos.ret); return false; }
   if (pos.status === "OPEN" && pos.ret <= RULES.stopLoss) { close(pos, "stop loss -50%", pos.ret); return false; }
   if (ageH >= RULES.maxHoldH && pos.status === "OPEN") { close(pos, "24 h time limit", pos.ret); return false; }
   // a pool that stays unknown for a full day is written off rather than shown as open forever
@@ -105,12 +117,15 @@ for (const a of queue.slice(0, RULES.maxScansPerRun)) {
     const res = await exclusive(() => analyze(addr, () => {}, () => {}));
     const { buy, reasons } = finalScore(res.rows);
     const p = res.pair || {};
-    return { buy, reasons, sym: (p.baseToken || {}).symbol, chain: p.chainId, pool: p.pairAddress, price: Number(p.priceUsd),
+    const flags = res.rows.filter(x => x.s === "YEL" || x.s === "RED").map(x => x.rule.split(" ")[0]);
+    return { buy, reasons, flags, sym: (p.baseToken || {}).symbol, chain: p.chainId, pool: p.pairAddress, price: Number(p.priceUsd),
       liq: (p.liquidity || {}).usd ?? null, mc: p.marketCap || p.fdv || null, url: p.url };
   }, a).catch(e => ({ error: e.message }));
   st.lastRun.scanned++;
   if (r.error || !r.pool || !(r.price > 0)) continue;
   st.log.unshift(`${now()} SCAN $${r.sym} ${r.buy}/10`);
+  const skip = RULES.skipFlags.find(f => r.flags.includes(f)) || (RULES.skipBoth.every(f => r.flags.includes(f)) ? RULES.skipBoth.join("+") : null);
+  if (r.buy >= RULES.minScore && skip) { st.log.unshift(`${now()} SKIP $${r.sym} ${r.buy}/10 (${skip} flagged)`); continue; }
   if (r.buy >= RULES.minScore && !st.open.some(p => p.mint === a)) {
     st.open.push({ mint: a, sym: r.sym, chain: r.chain, pool: r.pool, url: r.url, score: r.buy, why: r.reasons.slice(0, 3),
       entry: r.price, price: r.price, ret: 0, peak: 0, liq: r.liq, mc: r.mc, entryMc: r.mc, openedAt: now(), at: now(), status: "OPEN" });
