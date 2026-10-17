@@ -942,7 +942,10 @@ function crewHtml(rows, pending) {
 
 function render(addr, name, pair, L, rows, pending = [], chain = "solana") {
   const { buy: b0, reasons, flags } = score(rows);
-  const missing = pending.length ? [] : rows.filter(r => r.s === NA && !/^V9|^V25|^V26/.test(r.rule));
+  // TEST MODE (branch test-approve-all only, never main): approved when the coin has a link, an image and at least $20 liquidity
+  const info = pair.info || {};
+  const testOk = ((pair.liquidity || {}).usd || 0) >= 20 && !!info.imageUrl && !!(L.twitter || (info.socials || []).length || (info.websites || []).length);
+  const missing = pending.length || testOk ? [] : rows.filter(r => r.s === NA && !/^V9|^V25|^V26/.test(r.rule));
   // an unscanned check must never look like a pass
   // the chosen level (risk-profiles.js) reads the same checks: level 1 makes market cap/socials advisory, level 3 is paper only
   const view = window.DKRisk && DKRisk.chosen() ? DKRisk.assess(rows, score, pending) : null;
@@ -953,6 +956,7 @@ function render(addr, name, pair, L, rows, pending = [], chain = "solana") {
   const x = L.twitter ? `${L.twitter}${L.twitterIsPost ? " (a post, not a project account)" : ""}` : "no X link";
   const label = pending.length ? "SCANNING" : view && view.paperOnly ? "PAPER ONLY" : early ? "NOT YET · TOO EARLY" : verdict(buy).t;
   const tone = pending.length || (view && view.paperOnly) ? "na" : early ? "hold" : TONE[verdict(buy).s];
+  const tLabel = pending.length ? label : testOk ? "APPROVED" : "NOT APPROVED", tTone = pending.length ? tone : testOk ? "go" : "stop";
   const profile = view ? DKRisk.profiles[DKRisk.get()] : null;
   const chainName = (EVM[chain] || {}).name || (chain === "solana" ? "Solana" : chain);
 
@@ -975,10 +979,10 @@ function render(addr, name, pair, L, rows, pending = [], chain = "solana") {
 
   $("out").innerHTML = `
     <div class="rep-head">
-      <div class="plate plate-${tone}${pending.length ? " is-pending" : ""}" role="img" aria-label="Score ${pending.length ? "pending" : buy + " of 10"}: ${esc(label)}">
+      <div class="plate plate-${tTone}${pending.length ? " is-pending" : ""}" role="img" aria-label="${esc(tLabel)}">
         <span class="plate-holes" aria-hidden="true"></span>
-        <span class="plate-no">${pending.length ? Math.min(buy, 3) : buy}<small>/10</small></span>
-        <span class="plate-label">${esc(label)}</span>
+        <span class="plate-no">${pending.length ? "…" : testOk ? "✓" : "✗"}</span>
+        <span class="plate-label">${esc(tLabel)}</span>
       </div>
       <div class="rep-id">
         <p class="eyebrow">Scan report · ${esc(chainName)}</p>
@@ -1027,7 +1031,7 @@ function render(addr, name, pair, L, rows, pending = [], chain = "solana") {
         complete: !rows.some(r => r.s === NA && !r.rule.includes("(info)")), risk_flags: rows.filter(r => r.s === RED).map(r => r.rule) } };
     window.parent.postMessage({ type: "dk-research-scan", detail }, location.origin);
   }
-  if (typeof stageUpdate === "function") stageUpdate(addr, name, pair, crewState(rows, pending), pending, buy, label, tone);
+  if (typeof stageUpdate === "function") stageUpdate(addr, name, pair, crewState(rows, pending), pending, buy, tLabel, tTone);
   $("copy").onclick = () => navigator.clipboard.writeText(text).then(
     () => { $("copy").textContent = "Copied"; },
     () => { $("txt").select(); });
