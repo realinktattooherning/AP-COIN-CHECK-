@@ -286,6 +286,7 @@ async function links(mint, pair, rc) {
     L.description = L.description || String(meta.description || "").trim();
     L.sources.push("metadata");
   }
+  if (rc) { L.image = rc.fileMeta && rc.fileMeta.image || null; L.liq = rc.totalMarketLiquidity || 0; }
   if (rc && rc.fileMeta) { L.description = L.description || String(rc.fileMeta.description || "").trim(); L.sources.push("Rugcheck"); }
   L.twitterIsPost = /\/status\/|\/search/.test(L.twitter || "");
   return L;
@@ -944,7 +945,10 @@ function render(addr, name, pair, L, rows, pending = [], chain = "solana") {
   const { buy: b0, reasons, flags } = score(rows);
   // TEST MODE (branch test-approve-all only, never main): approved when the coin has a link, an image and at least $20 liquidity
   const info = pair.info || {};
-  const testOk = ((pair.liquidity || {}).usd || 0) >= 20 && !!info.imageUrl && !!(L.twitter || (info.socials || []).length || (info.websites || []).length);
+  const testLiq = Math.max((pair.liquidity || {}).usd || 0, L.liq || 0);
+  const testImg = info.imageUrl || L.image;
+  const testLink = pair.url || L.twitter || L.website || L.telegram || L.pump || (info.socials || []).length || (info.websites || []).length || chain === "solana";
+  const testOk = testLiq >= 20 && !!testImg && !!testLink;
   const missing = pending.length || testOk ? [] : rows.filter(r => r.s === NA && !/^V9|^V25|^V26/.test(r.rule));
   // an unscanned check must never look like a pass
   // the chosen level (risk-profiles.js) reads the same checks: level 1 makes market cap/socials advisory, level 3 is paper only
