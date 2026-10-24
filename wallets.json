@@ -1,0 +1,496 @@
+{
+ "updated": "2026-10-24T19:55:34.295Z",
+ "method": "first 25 buyers of recent pump.fun runners (≥$1M, ≤30 days), still trading in the last 30 days, not bots",
+ "runners": [
+  {
+   "mint": "9k6gfTLbDaUpx635kQaGTeDvzYs7hWdDW1MerpjYpump",
+   "sym": "USDF",
+   "mc": 198526582,
+   "ok": false,
+   "err": "HTTP 403"
+  },
+  {
+   "mint": "nxPqZ4F7ux8Vph5NFu25rEP6Kx9Gr1U6Fmj36Rjpump",
+   "sym": "Dacity",
+   "mc": 9782568,
+   "ok": false,
+   "err": "HTTP 403"
+  },
+  {
+   "mint": "CSocnzcRpgSCr1naKcNTieWZUxb6rABe45j844m7pump",
+   "sym": "Kimchi",
+   "mc": 5498953,
+   "ok": false,
+   "err": "HTTP 403"
+  },
+  {
+   "mint": "33jENUQnjoitkMFpvNJcSHyLAHFWJuHwT6E3E8CNpump",
+   "sym": "DOPE",
+   "mc": 3606361,
+   "ok": false,
+   "err": "HTTP 403"
+  },
+  {
+   "mint": "8Xg89xT8Ve34sKiYqYuMs46mycREsCA2F362UscRpump",
+   "sym": "GLITCH",
+   "mc": 2496972,
+   "ok": false,
+   "err": "HTTP 403"
+  },
+  {
+   "mint": "5tCju6YNxHq5zrA6tGndr6F7TK42mpUFmeE31cSFpump",
+   "sym": "swordcat",
+   "mc": 2123107,
+   "ok": false,
+   "err": "HTTP 403"
+  }
+ ],
+ "wallets": [
+  {
+   "addr": "3KcPSJ8ouE7H1feoWHmhDwXhLnXhpxP6R6713uytFmBM",
+   "runners": [
+    "HUMPH",
+    "VEIL",
+    "STREAM"
+   ],
+   "hits": 3,
+   "lastActiveDays": 0,
+   "medianGapS": 33,
+   "seen": "2026-10-22T12:21:05.160Z",
+   "firstSeen": "2026-10-12T23:47:12.260Z"
+  },
+  {
+   "addr": "AmwJToZR4YkawNquDbiUHbZnC2Myq1CLRRryUQ9FBf89",
+   "runners": [
+    "JEANPHIL",
+    "Agency"
+   ],
+   "hits": 2,
+   "lastActiveDays": 0,
+   "medianGapS": 13,
+   "seen": "2026-10-19T13:10:19.702Z",
+   "firstSeen": "2026-10-10T08:19:27.158Z"
+  },
+  {
+   "addr": "9bwHbhAEDTWgF8NMdxZkJLwooDcy3fshSxGanGWeskHC",
+   "runners": [
+    "Altai",
+    "SEALS"
+   ],
+   "hits": 2,
+   "lastActiveDays": 0,
+   "medianGapS": 12,
+   "seen": "2026-10-13T20:05:01.947Z",
+   "firstSeen": "2026-10-10T21:06:03.765Z"
+  },
+  {
+   "addr": "jmemehQbZXX7QqNE7Eyi81MdTZw6cEAT6TU4Kinwtru",
+   "runners": [
+    "JEANPHIL",
+    "EXFIL"
+   ],
+   "hits": 2,
+   "lastActiveDays": 0,
+   "medianGapS": 150,
+   "seen": "2026-10-21T00:49:28.570Z",
+   "firstSeen": "2026-10-10T08:19:28.862Z"
+  },
+  {
+   "addr": "FZU56d9iPqohXM5XBrYYBZLi2UoUnZT4V5Qf2631tEzb",
+   "runners": [
+    "DOPE",
+    "EXFIL"
+   ],
+   "hits": 2,
+   "lastActiveDays": 0,
+   "medianGapS": 15,
+   "seen": "2026-10-21T21:06:35.428Z",
+   "firstSeen": "2026-10-14T11:22:56.249Z"
+  },
+  {
+   "addr": "Hh2yn37jiXuwCM4nkvAZPbc8CjL6j32Ho38giC1y2PzL",
+   "runners": [
+    "JEANPHIL"
+   ],
+   "hits": 1,
+   "lastActiveDays": 0,
+   "medianGapS": 33,
+   "seen": "2026-10-19T13:10:17.264Z",
+   "firstSeen": "2026-10-10T08:19:24.773Z"
+  },
+  {
+   "addr": "CiueJwuBw1cZVz4YzY4TpPtyaEQJEpmYZmxkLAuXurDC",
+   "runners": [
+    "JEANPHIL"
+   ],
+   "hits": 1,
+   "lastActiveDays": 0,
+   "medianGapS": 32,
+   "seen": "2026-10-19T13:10:17.963Z",
+   "firstSeen": "2026-10-10T08:19:25.462Z"
+  },
+  {
+   "addr": "dsegg9CXSkMxMCzPz9YEYQ3PKrsonoAZoc5Sguk4BFn",
+   "runners": [
+    "swordcat"
+   ],
+   "hits": 1,
+   "lastActiveDays": 0,
+   "medianGapS": 11,
+   "seen": "2026-10-21T21:06:50.317Z",
+   "firstSeen": "2026-10-10T08:19:33.326Z"
+  },
+  {
+   "addr": "CAvvAFNRfXDWTTDqwgxb9qSyYT8fTuTXWSFwL7Jsz8vT",
+   "runners": [
+    "Agency"
+   ],
+   "hits": 1,
+   "lastActiveDays": 0,
+   "medianGapS": 10,
+   "seen": "2026-10-15T17:55:24.000Z",
+   "firstSeen": "2026-10-10T10:55:40.629Z"
+  },
+  {
+   "addr": "HRBonvjq6YE62jKnXpwH9wjxLqhiikf2hdFgVTef1Cvm",
+   "runners": [
+    "Agency"
+   ],
+   "hits": 1,
+   "lastActiveDays": 0,
+   "medianGapS": 5,
+   "seen": "2026-10-15T17:55:27.492Z",
+   "firstSeen": "2026-10-10T10:55:43.761Z"
+  },
+  {
+   "addr": "SQHK48QT8SY1vYN44iXji7wQ6CJek8AjfX6mBp47TZq",
+   "runners": [
+    "Agency"
+   ],
+   "hits": 1,
+   "lastActiveDays": 0,
+   "medianGapS": 7,
+   "seen": "2026-10-15T17:55:30.303Z",
+   "firstSeen": "2026-10-10T10:55:46.326Z"
+  },
+  {
+   "addr": "A5YxbLDRw4zForWHJwd4uBm3JqN6qWhWVVHfW3dDpCa9",
+   "runners": [
+    "Altai"
+   ],
+   "hits": 1,
+   "lastActiveDays": 0,
+   "medianGapS": 10,
+   "seen": "2026-10-10T21:06:00.347Z",
+   "firstSeen": "2026-10-10T21:06:00.347Z"
+  },
+  {
+   "addr": "J2fsLw1gjATRrP9LDgn9mPoUPafVGBkwpA73coRcWM6G",
+   "runners": [
+    "Altai"
+   ],
+   "hits": 1,
+   "lastActiveDays": 0,
+   "medianGapS": 115,
+   "seen": "2026-10-10T21:06:00.654Z",
+   "firstSeen": "2026-10-10T21:06:00.654Z"
+  },
+  {
+   "addr": "3nCqUmHrFqQGBwqW8YYfmbNBvxRTH1LaXTC8RgSmV9S3",
+   "runners": [
+    "Altai"
+   ],
+   "hits": 1,
+   "lastActiveDays": 0,
+   "medianGapS": 422,
+   "seen": "2026-10-10T21:06:01.282Z",
+   "firstSeen": "2026-10-10T21:06:01.282Z"
+  },
+  {
+   "addr": "7BHiUXijAC6mAntwuJSmkksyu9BD6Zk3wkr4gvCKMtgX",
+   "runners": [
+    "Altai"
+   ],
+   "hits": 1,
+   "lastActiveDays": 0,
+   "medianGapS": 66,
+   "seen": "2026-10-10T21:06:01.589Z",
+   "firstSeen": "2026-10-10T21:06:01.589Z"
+  },
+  {
+   "addr": "HL9rRBGSQRaeCqCXtFcraHBkx2mLBHnGEQpNqiPpuk3b",
+   "runners": [
+    "Altai"
+   ],
+   "hits": 1,
+   "lastActiveDays": 0,
+   "medianGapS": 11,
+   "seen": "2026-10-10T21:06:01.897Z",
+   "firstSeen": "2026-10-10T21:06:01.897Z"
+  },
+  {
+   "addr": "88887QrRZPZmsstEXsoXXB8E7nbmUDde4Gp5s7jG3ENu",
+   "runners": [
+    "Altai"
+   ],
+   "hits": 1,
+   "lastActiveDays": 0,
+   "medianGapS": 5,
+   "seen": "2026-10-10T21:06:02.201Z",
+   "firstSeen": "2026-10-10T21:06:02.201Z"
+  },
+  {
+   "addr": "DFFXHcmTgdBe5NPVXryoarPc4KYGNM3zWQ5K1PhPZccn",
+   "runners": [
+    "Altai"
+   ],
+   "hits": 1,
+   "lastActiveDays": 0,
+   "medianGapS": 20,
+   "seen": "2026-10-10T21:06:02.511Z",
+   "firstSeen": "2026-10-10T21:06:02.511Z"
+  },
+  {
+   "addr": "2f7TxJGeTsZRfTt5v2G4yuuTmvVKFCuaXawjerkXawGo",
+   "runners": [
+    "Altai"
+   ],
+   "hits": 1,
+   "lastActiveDays": 0,
+   "medianGapS": 9,
+   "seen": "2026-10-10T21:06:03.136Z",
+   "firstSeen": "2026-10-10T21:06:03.136Z"
+  },
+  {
+   "addr": "Gam8ULCMkV9jjKrDgm2hW5dKGhTpjxN3b5KUdxThPQeE",
+   "runners": [
+    "Altai"
+   ],
+   "hits": 1,
+   "lastActiveDays": 0,
+   "medianGapS": 19,
+   "seen": "2026-10-10T21:06:04.767Z",
+   "firstSeen": "2026-10-10T21:06:04.767Z"
+  },
+  {
+   "addr": "5QQ5Xi9iyY29th4bt5q9GEA1QFSVprMDk6FRadupE7Aj",
+   "runners": [
+    "Agency"
+   ],
+   "hits": 1,
+   "lastActiveDays": 0,
+   "medianGapS": 5,
+   "seen": "2026-10-15T17:55:24.929Z",
+   "firstSeen": "2026-10-11T02:12:13.776Z"
+  },
+  {
+   "addr": "sssssDdMNAWKingjpEojkTNdVuZrBe7FsJLaGtexe7d",
+   "runners": [
+    "swordcat"
+   ],
+   "hits": 1,
+   "lastActiveDays": 0,
+   "medianGapS": 5,
+   "seen": "2026-10-12T03:31:23.056Z",
+   "firstSeen": "2026-10-11T02:12:28.138Z"
+  },
+  {
+   "addr": "4UPvSdt1ki7x4cwFuNxjhxPCnQ4AXnCSTKLxYV1vXK1t",
+   "runners": [
+    "Agency"
+   ],
+   "hits": 1,
+   "lastActiveDays": 0,
+   "medianGapS": 8,
+   "seen": "2026-10-15T12:48:09.959Z",
+   "firstSeen": "2026-10-11T12:19:42.173Z"
+  },
+  {
+   "addr": "4WxE3GAiFG6EofdSF4N3DWXg5na9V3BQJJN5LuE5dzhP",
+   "runners": [
+    "JEANPHIL"
+   ],
+   "hits": 1,
+   "lastActiveDays": 0,
+   "medianGapS": 31,
+   "seen": "2026-10-19T13:10:18.303Z",
+   "firstSeen": "2026-10-11T22:27:32.984Z"
+  },
+  {
+   "addr": "9m4UetMFjysmBcm8o3meL6jJgbcLCTEtVZxx8jQpmpwu",
+   "runners": [
+    "swordcat"
+   ],
+   "hits": 1,
+   "lastActiveDays": 0,
+   "medianGapS": 9,
+   "seen": "2026-10-21T21:06:50.011Z",
+   "firstSeen": "2026-10-12T03:31:17.233Z"
+  },
+  {
+   "addr": "FSz6mptAxKrjDjaJYQiGiCGGwsxL4WgWjsh9sGhw4BZX",
+   "runners": [
+    "JEANPHIL"
+   ],
+   "hits": 1,
+   "lastActiveDays": 0,
+   "medianGapS": 13,
+   "seen": "2026-10-19T13:10:17.619Z",
+   "firstSeen": "2026-10-12T08:36:50.235Z"
+  },
+  {
+   "addr": "5e8DjVTq2NxESfa3RtMeGyhifiDyuwo4zmRHj8JNEA5W",
+   "runners": [
+    "JEANPHIL"
+   ],
+   "hits": 1,
+   "lastActiveDays": 0,
+   "medianGapS": 60,
+   "seen": "2026-10-19T13:10:19.359Z",
+   "firstSeen": "2026-10-15T02:38:32.941Z"
+  },
+  {
+   "addr": "CyBiGyD1EunXXrNRsu6pKkCQPTbdZ9UTsxAum9twRcSt",
+   "runners": [
+    "Agency"
+   ],
+   "hits": 1,
+   "lastActiveDays": 0,
+   "medianGapS": 6,
+   "seen": "2026-10-15T17:55:28.110Z",
+   "firstSeen": "2026-10-15T07:42:55.737Z"
+  },
+  {
+   "addr": "EdgeuzbGsWhX5KXNB9St9n1EA7m74Ujr41KHykkFPJC5",
+   "runners": [
+    "Agency"
+   ],
+   "hits": 1,
+   "lastActiveDays": 0,
+   "medianGapS": 47,
+   "seen": "2026-10-15T17:55:29.991Z",
+   "firstSeen": "2026-10-15T07:42:57.465Z"
+  },
+  {
+   "addr": "G3gKCu8XkjXK3zT1CEzFCsBjbuVwXa9pkjmTH5TK34uQ",
+   "runners": [
+    "Agency"
+   ],
+   "hits": 1,
+   "lastActiveDays": 0,
+   "medianGapS": 30,
+   "seen": "2026-10-15T17:55:26.240Z",
+   "firstSeen": "2026-10-10T10:55:42.623Z"
+  },
+  {
+   "addr": "GaHL9p3GaM1fQq5UNpaygnTyHSzVEB6deABvUj2Tzmdr",
+   "runners": [
+    "STREAM"
+   ],
+   "hits": 1,
+   "lastActiveDays": 0,
+   "medianGapS": 301,
+   "seen": "2026-10-16T14:15:14.917Z",
+   "firstSeen": "2026-10-15T12:47:54.936Z"
+  },
+  {
+   "addr": "5pS6CWfKHi5LJhaphDsLZU4Kxx7VCfV7qxWryozBQGv4",
+   "runners": [
+    "STREAM"
+   ],
+   "hits": 1,
+   "lastActiveDays": 0,
+   "medianGapS": 276,
+   "seen": "2026-10-16T14:15:13.059Z",
+   "firstSeen": "2026-10-15T22:59:16.366Z"
+  },
+  {
+   "addr": "7B8E7tMmkPe9WmA3fVUHcNFK5rRvfbkRNc9nn2RziWFT",
+   "runners": [
+    "FTR"
+   ],
+   "hits": 1,
+   "lastActiveDays": 0,
+   "medianGapS": 14,
+   "seen": "2026-10-18T11:47:01.892Z",
+   "firstSeen": "2026-10-16T09:10:36.731Z"
+  },
+  {
+   "addr": "2Dd3TRSdNwVzPQHR7tKSxq3ABg9QiQsF1EL4Zqi5aegn",
+   "runners": [
+    "FTR"
+   ],
+   "hits": 1,
+   "lastActiveDays": 0,
+   "medianGapS": 6,
+   "seen": "2026-10-18T11:47:03.267Z",
+   "firstSeen": "2026-10-16T09:10:38.238Z"
+  },
+  {
+   "addr": "PXCTHe5VBzVRqSs6rJz8pr1DXhJyStT2jDzxk85Th55",
+   "runners": [
+    "FTR"
+   ],
+   "hits": 1,
+   "lastActiveDays": 0,
+   "medianGapS": 422,
+   "seen": "2026-10-18T11:47:04.266Z",
+   "firstSeen": "2026-10-16T09:10:39.274Z"
+  },
+  {
+   "addr": "EJQnyLEdMmAv4673xiJYnG61154nmBCc2vDPaNayXEiE",
+   "runners": [
+    "STREAM"
+   ],
+   "hits": 1,
+   "lastActiveDays": 0,
+   "medianGapS": 20,
+   "seen": "2026-10-16T14:15:11.143Z",
+   "firstSeen": "2026-10-16T14:15:11.143Z"
+  },
+  {
+   "addr": "8d4yEnDqiVthHaXamfbZVLY4zNfcTxjDDiLtMXh57bcD",
+   "runners": [
+    "STREAM"
+   ],
+   "hits": 1,
+   "lastActiveDays": 0,
+   "medianGapS": 46,
+   "seen": "2026-10-16T14:15:12.305Z",
+   "firstSeen": "2026-10-16T14:15:12.305Z"
+  },
+  {
+   "addr": "CKB1XYgbEmfEE3FJev7gFwEVtoqEvmsX6GhnbuFvuN5d",
+   "runners": [
+    "JEANPHIL"
+   ],
+   "hits": 1,
+   "lastActiveDays": 0,
+   "medianGapS": 44,
+   "seen": "2026-10-19T13:10:18.646Z",
+   "firstSeen": "2026-10-19T13:10:18.646Z"
+  },
+  {
+   "addr": "25PoJzSdPxPAT71quvULSdbKAWs4LmNibH6SoRKzVBzn",
+   "runners": [
+    "VEIL"
+   ],
+   "hits": 1,
+   "lastActiveDays": 0,
+   "medianGapS": 1958,
+   "seen": "2026-10-22T12:21:05.490Z",
+   "firstSeen": "2026-10-22T07:17:29.506Z"
+  },
+  {
+   "addr": "7R2ynigqbEnCEXCzv4KiuMiMM4UpsA49xZamXCSBvDw3",
+   "runners": [
+    "VEIL"
+   ],
+   "hits": 1,
+   "lastActiveDays": 0,
+   "medianGapS": 241,
+   "seen": "2026-10-22T12:21:06.794Z",
+   "firstSeen": "2026-10-22T07:17:30.862Z"
+  }
+ ]
+}
