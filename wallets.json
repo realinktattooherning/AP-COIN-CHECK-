@@ -1,0 +1,42 @@
+{
+ "updated": "2026-11-07T16:56:24.738Z",
+ "method": "first 25 buyers of recent pump.fun runners (≥$1M, ≤30 days), still trading in the last 30 days, not bots",
+ "runners": [
+  {
+   "mint": "8UQdy5sHMVWUWSHeA5B3ZuuAVNumjSLPXdf19MXcpump",
+   "sym": "COGE",
+   "mc": 8406415,
+   "ok": false,
+   "err": "HTTP 403"
+  },
+  {
+   "mint": "nxPqZ4F7ux8Vph5NFu25rEP6Kx9Gr1U6Fmj36Rjpump",
+   "sym": "Dacity",
+   "mc": 7565294,
+   "ok": false,
+   "err": "HTTP 403"
+  },
+  {
+   "mint": "9Pq7aLAbhDG2tTnS22cm6kuysZVcZpLFE368HWuypump",
+   "sym": "JOB",
+   "mc": 6185265,
+   "ok": false,
+   "err": "HTTP 403"
+  },
+  {
+   "mint": "DKtofLM6bhb54GQy5YFSWQjQmGiZqAkjzkQJ1LTopump",
+   "sym": "HODL",
+   "mc": 4258105,
+   "ok": false,
+   "err": "HTTP 403"
+  },
+  {
+   "mint": "7SL2VnfYsChvog5oQY9Nmtqu1wceaMiQzWoqoLQpump",
+   "sym": "NIO",
+   "mc": 1246011,
+   "ok": false,
+   "err": "HTTP 403"
+  }
+ ],
+ "wallets": []
+}
