@@ -1,0 +1,49 @@
+{
+ "updated": "2026-11-14T15:27:36.922Z",
+ "method": "first 25 buyers of recent pump.fun runners (≥$1M, ≤30 days), still trading in the last 30 days, not bots",
+ "runners": [
+  {
+   "mint": "4CxjZyMNoF1p6eXHXHv1TWpS2X47CuUmLwtGe18spump",
+   "sym": "mihao",
+   "mc": 14214543,
+   "ok": false,
+   "err": "HTTP 403"
+  },
+  {
+   "mint": "KMifrkYmDdAKtVXAVBEPEQxJ7qP2iLgUcfZjUZipump",
+   "sym": "RAMBO",
+   "mc": 10913836,
+   "ok": false,
+   "err": "HTTP 403"
+  },
+  {
+   "mint": "GexThZHgaswpAQ7Fi8QrHFubjPimUNSYhJiAA7XZpump",
+   "sym": "WASTED",
+   "mc": 3071338,
+   "ok": false,
+   "err": "HTTP 403"
+  },
+  {
+   "mint": "7SL2VnfYsChvog5oQY9Nmtqu1wceaMiQzWoqoLQpump",
+   "sym": "NIO",
+   "mc": 2576539,
+   "ok": false,
+   "err": "HTTP 403"
+  },
+  {
+   "mint": "HWya5CpQiQWLnJfJVRDF9o8AHaUPnPMRa3vfQRczpump",
+   "sym": "AMC",
+   "mc": 2454160,
+   "ok": false,
+   "err": "HTTP 403"
+  },
+  {
+   "mint": "5qaP7oKUqKffwwo5DaEqDoTtsBLMpdbQTxEkCDaTpump",
+   "sym": "Max",
+   "mc": 2005486,
+   "ok": false,
+   "err": "HTTP 403"
+  }
+ ],
+ "wallets": []
+}
