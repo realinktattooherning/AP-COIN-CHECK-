@@ -1,0 +1,35 @@
+{
+ "updated": "2026-11-21T15:29:33.065Z",
+ "method": "first 25 buyers of recent pump.fun runners (≥$1M, ≤30 days), still trading in the last 30 days, not bots",
+ "runners": [
+  {
+   "mint": "4CxjZyMNoF1p6eXHXHv1TWpS2X47CuUmLwtGe18spump",
+   "sym": "mihao",
+   "mc": 7216770,
+   "ok": false,
+   "err": "HTTP 403"
+  },
+  {
+   "mint": "FJKt1LxbWBpTRt9BaDEB6Wr2qL5LZzjFF5sx8rXnpump",
+   "sym": "MAYA",
+   "mc": 3457688,
+   "ok": false,
+   "err": "HTTP 403"
+  },
+  {
+   "mint": "DkHsZ1kjd2Fua8sgKE6PhHhyCdXYscbDVN7mAfiGpump",
+   "sym": "JENSEN",
+   "mc": 1682510,
+   "ok": false,
+   "err": "HTTP 403"
+  },
+  {
+   "mint": "2TngN4B7XaoGSKsYvttq5bFAdM4Z4xCSnuyRwGiFpump",
+   "sym": "PUNANI",
+   "mc": 1655022,
+   "ok": false,
+   "err": "HTTP 403"
+  }
+ ],
+ "wallets": []
+}
